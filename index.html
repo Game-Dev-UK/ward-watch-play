@@ -285,6 +285,14 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   border-radius:5px;padding:9px 10px;min-height:44px;cursor:pointer}
 .pal button.on{color:#0E1923;background:#7FB3A6;border-color:#7FB3A6}
 .pal button.done{color:#0E1923;background:#E2A03C;border-color:#E2A03C;margin-left:auto}
+#t3-layouts{flex:0 0 auto;display:flex;flex-direction:column;gap:3px;margin-left:8px;border-left:1px solid rgba(242,231,211,.16);padding-left:8px}
+#t3-save-name{width:104px;min-height:24px;padding:4px 6px;font:600 10px/1 var(--sans);color:#F2E7D3;background:rgba(242,231,211,.07);border:1px solid rgba(242,231,211,.22);border-radius:4px}
+#t3-save{font:700 10px/1 var(--sans);color:#0E1923;background:#7FB3A6;border:1px solid #7FB3A6;border-radius:4px;padding:0 8px;min-height:24px;cursor:pointer}
+.t3-li{display:flex;align-items:center;gap:4px;font:600 9px/1.2 var(--sans);color:#C9D6D2}
+.t3-li span{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:96px}
+.t3-load,.t3-del{font:700 9px/1 var(--sans);border-radius:3px;padding:4px 6px;min-height:20px;cursor:pointer}
+.t3-load{color:#0E1923;background:#E2A03C;border:1px solid #E2A03C}
+.t3-del{color:#F3D9D9;background:rgba(192,84,84,.25);border:1px solid rgba(192,84,84,.6)}
 .t3err{position:absolute;inset:auto 12px 12px 12px;padding:10px 12px;border-radius:6px;
   background:#3A1F1F;color:#F3D9D9;font:600 11px/1.4 var(--sans)}
 
@@ -449,6 +457,7 @@ var REPORTS=[
    2. THE STATE, the seed, and the save
    ============================================================ */
 var SAVE_KEY="ward-watch";
+var LAYOUTS_KEY="ward-watch-layouts";
 var S=null;
 var _seed=1,_s=1;
 function seedRng(n){_seed=(n|0)||1;_s=_seed>>>0;return true;}
@@ -2514,6 +2523,67 @@ function bedsIn(f,i){
   for(j=0;j<d.items.length;j++)if(KIND3[d.items[j].k]&&KIND3[d.items[j].k].beds)n++;
   return n;
 }
+function getAllLayouts(){
+  try{var r=localStorage.getItem(LAYOUTS_KEY);return r?JSON.parse(r):[];}
+  catch(e){return [];}
+}
+function persistLayouts(layouts){
+  try{localStorage.setItem(LAYOUTS_KEY,JSON.stringify(layouts));}catch(e){}
+}
+function currentDecorItems(){
+  if(!T3.editor)return [];
+  var f=T3.editor[0],i=T3.editor[1];
+  var d=decorFor(f,i);
+  var out=[];
+  for(var j=0;j<d.items.length;j++)out.push({gx:d.items[j].gx,gy:d.items[j].gy,k:d.items[j].k});
+  return out;
+}
+function saveLayout(name){
+  var items=currentDecorItems();
+  if(!items.length)return;
+  var layouts=getAllLayouts();
+  var f=T3.editor[0],i=T3.editor[1];
+  var label=roomName3(f,i);
+  for(var j=0;j<layouts.length;j++){
+    if(layouts[j].name===name){
+      layouts[j].items=items;layouts[j].label=label;layouts[j].count=items.length;
+      persistLayouts(layouts);t3palette();return;
+    }
+  }
+  layouts.push({name:name,items:items,label:label,count:items.length});
+  persistLayouts(layouts);t3palette();
+}
+function loadLayout(name){
+  var layouts=getAllLayouts();
+  for(var j=0;j<layouts.length;j++){
+    if(layouts[j].name===name){
+      var f=T3.editor[0],i=T3.editor[1];
+      var k=decorKey(f,i);
+      if(!S.decor)S.decor={};
+      S.decor[k]={items:JSON.parse(JSON.stringify(layouts[j].items))};
+      if(f===0&&S.rooms[i]&&S.rooms[i].t)S.rooms[i].beds=bedsIn(f,i);
+      S.dirty=1;
+      try{save();}catch(e){}
+      var g=T3.floors[f],ig=null,n;
+      for(n=0;n<g.children.length;n++){
+        var c=g.children[n];
+        if(c.type==="Group"&&c.userData&&c.userData.f===f&&c.userData.i===i)ig=c;
+      }
+      if(ig)t3items(ig,f,i);
+      t3palette();
+      return;
+    }
+  }
+}
+function deleteLayout(name){
+  var layouts=getAllLayouts();
+  var out=[];
+  for(var j=0;j<layouts.length;j++){
+    if(layouts[j].name!==name)out.push(layouts[j]);
+  }
+  persistLayouts(out);
+  t3palette();
+}
 function roomColor3(f,i){
   if(f>0)return [0xEDE0C8,0xEDE0C8,0xE4D6BF,0xEDE0C8,0xEDE0C8,0xD8CCB8][i];
   var r=S.rooms[i];
@@ -2572,9 +2642,11 @@ function t3init(){
   T3.camTgt=new THREE.Vector3(0,60,0);
   T3.cam.position.copy(T3.camPos);
   T3.cam.lookAt(T3.camTgt);
-  T3.sc.add(new THREE.HemisphereLight(0xdCEBF0,0x1A2830,.95));
-  var key=new THREE.DirectionalLight(0xFFF3DE,.95);key.position.set(160,360,220);T3.sc.add(key);
+  T3.sc.add(new THREE.HemisphereLight(0xdCEBF0,0x1A2830,.95));  var key=new THREE.DirectionalLight(0xFFF3DE,.95);key.position.set(160,360,220);T3.sc.add(key);
   var fill=new THREE.DirectionalLight(0x9CC4D4,.35);fill.position.set(-220,160,-140);T3.sc.add(fill);
+  // Corridor strip: a warm linear light down the middle of the ward corridor
+  var strip=new THREE.PointLight(0xFFD9A0,0,260);strip.position.set(0,3,0);T3.sc.add(strip);T3.strip=strip;
+  T3.lamps=[];
   T3.building=new THREE.Group();T3.sc.add(T3.building);
   var lift=boxMesh(30,W3.fl*2+26,30,0x46616B);lift.position.set(118,W3.fl+13,0);
   lift.userData={lift:1};T3.building.add(lift);T3.lift=lift;
@@ -2621,6 +2693,9 @@ function t3floor(f){
       if(st&&st.label!=="Empty"){
         var per=boxMesh(7,22,7,0x3E5B52);per.position.set(cx+W3.cw/2-13,12,cz+W3.cd/2-13);add(per);
         var head=boxMesh(6,6,6,0xD8BB99);head.position.set(cx+W3.cw/2-13,26,cz+W3.cd/2-13);add(head);
+        // Bedside lamp: warm glow on occupied bays, off when empty
+        var lamp=new THREE.PointLight(0xFFB066,0,120);lamp.position.set(cx+W3.cw/2-13,20,cz+W3.cd/2-13);
+        lamp.userData={f:0,i:i};g.add(lamp);T3.lamps.push(lamp);
       }
     }
   }
@@ -2685,7 +2760,27 @@ function t3palette(){
   var out="",k;
   for(k in KIND3)out+='<button data-k="'+k+'"'+(k===T3.cell?' class="on"':'')+'>'+k.charAt(0).toUpperCase()+k.slice(1)+'</button>';
   out+='<button class="done" id="t3done">Done</button>';
+  // Named layouts section
+  var layouts=getAllLayouts();
+  out+='<div id="t3-layouts"><input id="t3-save-name" placeholder="Layout name" maxlength="20"><button id="t3-save">Save</button>';
+  for(var j=0;j<layouts.length;j++){
+    var li=layouts[j];
+    out+='<div class="t3-li"><span>'+esc(li.name)+' ('+li.count+' pcs)</span><button class="t3-load" data-ln="'+esc(li.name)+'">Load</button><button class="t3-del" data-ld="'+esc(li.name)+'">Del</button></div>';
+  }
+  out+='</div>';
   p.innerHTML=out;
+  document.getElementById("t3-save").addEventListener("click",function(){
+    var v=document.getElementById("t3-save-name");
+    if(v&&v.value.trim())saveLayout(v.value.trim());
+  });
+  var layEl=document.getElementById("t3-layouts");
+  if(layEl){
+    layEl.addEventListener("click",function(e){
+      var btn=e.target;
+      if(btn.classList.contains("t3-load")&&btn.getAttribute("data-ln"))loadLayout(btn.getAttribute("data-ln"));
+      if(btn.classList.contains("t3-del")&&btn.getAttribute("data-ld"))deleteLayout(btn.getAttribute("data-ld"));
+    });
+  }
   document.getElementById("v3d-title").textContent=roomName3(T3.editor[0],T3.editor[1]);
   document.getElementById("v3d-sub").textContent="Level "+(T3.editor[0]===0?"ground":"one above")+" · "+bedsIn(T3.editor[0],T3.editor[1])+" beds · tap a square to place";
   document.getElementById("v3d-hint").textContent="Pick a piece, then tap the grid. Tap a placed piece to take it away.";
@@ -2720,10 +2815,38 @@ function t3resize(){
   T3.rn.setSize(W,H,false);
   T3.cam.aspect=W/H;T3.cam.updateProjectionMatrix();
 }
+function t3lights(){
+  // Ward clock: 12 acts per visit. Acts 1-4 = day, 5-8 = evening, 9-12 = night.
+  var a=(S.acts||1);
+  var phase=a>=9?"night":(a>=5?"evening":"day");
+  var key=T3.sc.children.find(c=>c.type==="DirectionalLight"&&c.position.distanceTo(new THREE.Vector3(160,360,220))<1);
+  var fill=T3.sc.children.find(c=>c.type==="DirectionalLight"&&c.position.distanceTo(new THREE.Vector3(-220,160,-140))<1);
+  if(phase==="night"){
+    if(key){key.color.set(0xFFF3DE);key.intensity=0.5;}
+    if(fill){fill.color.set(0x9CC4D4);fill.intensity=0.2;}
+  }else if(phase==="evening"){
+    if(key){key.color.set(0xFFC48D);key.intensity=0.8;}
+    if(fill){fill.color.set(0xA0C0E0);fill.intensity=0.3;}
+  }else{
+    if(key){key.color.set(0xFFF3DE);key.intensity=1;}
+    if(fill){fill.color.set(0x9CC4D4);fill.intensity=0.35;}
+  }
+  // Corridor strip: lit after dark, low at dusk, off in bright day
+  if(T3.strip){
+    T3.strip.intensity=phase==="night"?1.1:(phase==="evening"?0.5:0.05);
+  }
+  // Bedside lamps: warm glow on occupied bays, off when empty
+  for(var li=0;li<T3.lamps.length;li++){
+    var lp=T3.lamps[li];
+    var st=S.rooms[lp.userData.i]&&S.rooms[lp.userData.i].t?stateOf(lp.userData.i):null;
+    lp.intensity=(st&&st.label!=="Empty")?(phase==="night"?1.4:(phase==="evening"?0.9:0.45)):0;
+  }
+}
 function t3loop(){
   if(!T3.open)return;
   requestAnimationFrame(t3loop);
   if(!T3.ready)return;
+  t3lights();
   var tgt=T3._tgt||new THREE.Vector3(0,60,0);
   var dist=T3._dist||T3.dist,el=T3._el||T3.el;
   T3.camTgt.lerp(tgt,0.12);
