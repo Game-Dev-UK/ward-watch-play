@@ -1643,6 +1643,16 @@ function personIcon(c,f){
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 /* ---------------- the sheets ---------------- */
 var SHEETS=["sh-room","sh-patient","sh-build","sh-staff","sh-report","sh-choice","sh-chain"];
+// guard: every sheet must keep its header and body, or the panel opens blank and its options vanish
+(function(){
+  var i,s;
+  for(i=0;i<SHEETS.length;i++){
+    s=document.getElementById(SHEETS[i]);
+    if(!s)continue;
+    if(!s.querySelector(".hd")){var hd=document.createElement("div");hd.className="hd";s.insertBefore(hd,s.firstChild);}
+    if(!s.querySelector(".bd")){var bd=document.createElement("div");bd.className="bd";s.appendChild(bd);}
+  }
+})();
 function openSheet(id,w){
   closeSheets();
   S.sheet=id;S.with=w||{};
