@@ -107,7 +107,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .platefoot{flex:0 0 auto;display:flex;align-items:center;gap:9px;width:100%;padding:9px 12px 0;font-size:11px;
   letter-spacing:.14em;text-transform:uppercase;color:#C6B79C;font-weight:700}
 .platefoot i{display:block;flex:1;height:1px;background:#4A5A68}
-.wardwrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;
+.wardwrap{min-height:0;overflow:hidden;flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;
   align-items:center;padding:8px 9px 6px;gap:6px;overflow:hidden;
   background:
     linear-gradient(180deg,rgba(19,32,44,.16),transparent 22%),
@@ -130,6 +130,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .bar{flex:0 0 auto;display:flex;gap:6px;padding:9px 10px calc(12px + env(safe-area-inset-bottom));
   background:linear-gradient(180deg,#13202C,#0C1620);border-top:2px solid #050B12}
 .bar button{min-height:58px;border-radius:5px;background:var(--card);border:1px solid var(--edge2);
+  transition:transform .12s ease,background .16s ease,border-color .16s ease,color .16s ease;
   box-shadow:0 2px 0 rgba(5,11,18,.55),inset 0 1px 0 #fff;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:3px;padding:5px 3px;font-size:11px;font-weight:600;
   color:var(--ink2);letter-spacing:.03em;text-align:center;line-height:1.1}
@@ -138,7 +139,19 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   color:#F6EEDE;font-weight:600;font-size:14.5px;font-family:var(--disp);letter-spacing:.01em;
   box-shadow:0 2px 0 rgba(5,11,18,.6),inset 0 1px 0 rgba(246,238,222,.14),inset 0 -3px 0 var(--amber-d)}
 .bar #b-main svg{width:19px;height:19px}
-.bar button:active{transform:translateY(1px)}
+.bar button:active{transform:scale(.965);background:#22333F}
+@keyframes rmhit{0%{transform:scale(1.17)}58%{transform:scale(.985)}100%{transform:scale(1)}}
+#wardart .rm.hit{animation:rmhit .52s cubic-bezier(.2,.8,.3,1);transform-box:fill-box;transform-origin:center}
+@keyframes numpop{0%{transform:translateY(3px) scale(.93);opacity:.55}100%{transform:none;opacity:1}}
+.strip .slot b.pop{animation:numpop .4s cubic-bezier(.2,.8,.3,1)}
+@keyframes flashin{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:none}}
+.sheet.on .bd>*{animation:flashin .26s ease-out both}
+.sheet.on .bd>*:nth-child(2){animation-delay:.03s}
+.sheet.on .bd>*:nth-child(3){animation-delay:.06s}
+@media (prefers-reduced-motion:reduce){
+  .sheet,.sheet.on,.bar button{transition-duration:.01s}
+  #wardart .rm.hit,.strip .slot b.pop,.sheet.on .bd>*{animation:none}
+}
 .bar .nb{flex:1 1 18%;font-size:11.5px;gap:4px}
 .bar button.hold{filter:saturate(.6) brightness(.94)}
 
@@ -149,8 +162,10 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;max-height:78%;display:flex;flex-direction:column;
   background:var(--paper);border-top:3px solid var(--ink);border-radius:14px 14px 0 0;
   box-shadow:0 -14px 34px rgba(5,11,18,.45);opacity:0;visibility:hidden;min-height:44%;
-  transition:opacity .18s ease,visibility 0s linear .18s}
-.sheet.on{opacity:1;visibility:visible;transition:opacity .18s ease}
+  transform:translateY(104%);
+  transition:opacity .22s ease,transform .32s cubic-bezier(.22,.9,.3,1),visibility 0s linear .32s}
+.sheet.on{opacity:1;visibility:visible;transform:none;
+  transition:opacity .22s ease,transform .32s cubic-bezier(.22,.9,.3,1)}
 .sheet .hd{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:11px 13px 9px;
   border-bottom:1px solid var(--edge2)}
 .sheet .hd h2{margin:0;font-family:var(--disp);font-size:17px;font-weight:600;letter-spacing:-.2px;
@@ -215,6 +230,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   padding:0 0 96px;background:rgba(11,20,30,.58);opacity:0;visibility:hidden;
   transition:opacity .18s ease,visibility 0s linear .18s}
 #md-call.on{opacity:1;visibility:visible;transition:opacity .18s ease}
+#md-call.on .box{transform:none}
 #md-call .box{width:100%;max-width:366px;background:var(--paper);border-top:3px solid var(--red);
   border-radius:12px;padding:13px 13px 15px;transform:translateY(14px);transition:transform .2s ease;
   box-shadow:0 -12px 30px rgba(5,11,18,.5)}
@@ -869,7 +885,7 @@ function shell(){
       s+=R(bx+10,by+4,44,12,"#9AA7A0",1)+R(bx+10,by+4,44,3,"#E2A03C");
       s+=TX(bx+60,by+14,"kit is too wide",11,"#E2D8C5",700);
     }
-    s+=badge(i);
+    s+='<g class="rm" data-i="'+i+'">'+badge(i)+'</g>';
   }
   return s;
 }
@@ -882,6 +898,20 @@ function setSVG(el,markup){
 }
 function renderWard(){
   setSVG(document.getElementById("wardart"),DEFS+shell());
+  var sig=[],qi2;
+  for(qi2=0;qi2<6;qi2++)sig.push(S.rooms[qi2].t?stateOf(qi2).label:"-");
+  var prevSig=S._sig||[];S._sig=sig;
+  // a room that changed state pops once. The mark is kept for a moment because
+  // one action can render twice and the second pass would lose the class.
+  S._flash=S._flash||{};
+  var now=Date.now();
+  for(qi2=0;qi2<6;qi2++){
+    if(prevSig[qi2]&&prevSig[qi2]!==sig[qi2])S._flash[qi2]=now+520;
+  }
+  var rgs=document.querySelectorAll("#wardart .rm");
+  for(qi2=0;qi2<rgs.length;qi2++){
+    if(S._flash[qi2]&&S._flash[qi2]>now)rgs[qi2].classList.add("hit");
+  }
   renderHot();
 }
 /* the six rooms, the ward door and the corridor, as buttons over the plan */
@@ -1478,6 +1508,13 @@ function walkRound(){
    header, and a named button at the foot that returns to the ward.
    ============================================================ */
 function el(id){return document.getElementById(id);}
+function setNum(node,v){
+  if(!node||node.textContent===v)return;
+  node.textContent=v;
+  node.classList.remove("pop");
+  void node.offsetWidth;
+  node.classList.add("pop");
+}
 function headHTML(t,sub,x){
   return '<div class="hd"><h2>'+t+'</h2>'+(sub?'<span class="sub">'+sub+'</span>':'')+
    '<button class="x" data-a="close" aria-label="Close and go back to the ward">'+XICON+'</button></div>';
@@ -1486,8 +1523,8 @@ var XICON='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="curre
 function footBtn(label,a){return '<button class="wide" data-a="'+(a||"close")+'">'+label+'</button>';}
 function renderStrip(){
   var st=S.strip,v="";
-  el("s-cash").textContent=money(S.cash);
-  el("s-queue").textContent=String(queueList().length);
+  setNum(el("s-cash"),money(S.cash));
+  setNum(el("s-queue"),String(queueList().length));
   if(st==="load"){el("s-thirdk").textContent="Load";v=String(S.load);}
   else if(st==="grade"){el("s-thirdk").textContent="Grade";v=(S.gl||S.standing||0)+"";}
   else if(st==="staff"){el("s-thirdk").textContent="On floor";var n=0,i;
@@ -2265,12 +2302,8 @@ function planFit(){
   if(!(sc>0.25))sc=0.25;
   if(sc>1.4)sc=1.4;
   apply(sc);
-  var ph=el("phone");
-  if(ph&&ph.scrollHeight>ph.clientHeight+1){
-    var over=ph.scrollHeight-ph.clientHeight;
-    sc=Math.max(0.25,(PLANH-over)/452);
-    apply(sc);
-  }
+  // No overflow fallback: the frame clips, and the slided sheet below the fold
+  // counts towards scrollHeight, which used to shrink the plan to its floor.
 }
 function apply(sc){
   PLANW=Math.round(374*sc);PLANH=Math.round(452*sc);
