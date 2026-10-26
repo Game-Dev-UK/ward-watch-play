@@ -302,7 +302,7 @@ var ROMS=[
   does:"sorts the queue into a seen-in order the ward then follows"},
  {id:"bay",n:"Bay",cost:1200,door:120,kit:0,beds:2,role:"",
   does:"beds where patients wait, and the card-swap problem"},
- {id:"treat",n:"Treatment room",cost:1800,door:70,kit:90,beds:1,role:"nurse",
+ {id:"treat",n:"Treatment",cost:1800,door:70,kit:90,beds:1,role:"nurse",
   does:"where the invented condition is treated and the patient discharged"},
  {id:"day",n:"Day room",cost:700,door:120,kit:0,beds:0,role:"",
   does:"where patients and staff recover, and mood comes back"},
@@ -744,7 +744,7 @@ function hatStand(x,y){
 }
 /* state carried by shape and word, never by colour alone */
 function badge(i){
-  var r=S.rooms[i],x=roomX(i),y=(i<3?NY+8:SY+8),st=stateOf(i),d=roomDef(r.t);
+  var r=S.rooms[i],x=roomX(i),y=(i<3?18:278),st=stateOf(i),d=roomDef(r.t);
   if(!r.t)return "";
   var w=st.label.length*6.9+(st.icon?24:13), f=st.f, tc=st.tc;
   var s=R(x+7,y,Math.min(w,CW-14),17,f,3)+LIT(x+7,y,Math.min(w,CW-14),17,3);
@@ -847,7 +847,7 @@ function shell(){
     s+=R(dx+dw-6,dy+2,3,3,"#E2A03C",2);
     s+=R(roomX(i),dy,22,7,"#22303C")+R(roomX(i)+dw+22,dy,CW-dw-22,7,"#22303C");
     if(S.rooms[i].t){
-      var dd=roomDef(S.rooms[i].t),py=(i<3?dy+8:dy-24);
+      var dd=roomDef(S.rooms[i].t),py=(i<3?39:299); /* name plate sits under its own status chip */
       s+='<g>'+R(roomX(i)+1,py,CW-2,16,"#FBF2DE",1);
       s+=R(roomX(i)+1,py,CW-2,1.4,"#8E7B5C");
       s+=TX(roomX(i)+6,py+11.6,(dd?dd.n:"Room"),12,"#241A10",800);
