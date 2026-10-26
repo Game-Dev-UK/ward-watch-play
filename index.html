@@ -827,11 +827,11 @@ function shell(){
     s+=R(dx+dw-6,dy+2,3,3,"#E2A03C",2);
     s+=R(roomX(i),dy,22,7,"#22303C")+R(roomX(i)+dw+22,dy,CW-dw-22,7,"#22303C");
     if(S.rooms[i].t){
-      var dd=roomDef(S.rooms[i].t),py=(i<3?dy+9:dy-22);
-      s+='<g>'+R(roomX(i)+1,py,CW-2,13,"#FBF2DE",1);
-      s+=R(roomX(i)+1,py,CW-2,1,"#8E7B5C");
-      s+=TX(roomX(i)+6,py+9.6,(dd?dd.n:"Room"),10.5,"#3B2E20",700);
-      if(S.rooms[i].door)s+=TX(roomX(i)+CW-6,py+9.6,S.rooms[i].door+" cm",10,"#2F6E63",700,"end");
+      var dd=roomDef(S.rooms[i].t),py=(i<3?dy+8:dy-24);
+      s+='<g>'+R(roomX(i)+1,py,CW-2,16,"#FBF2DE",1);
+      s+=R(roomX(i)+1,py,CW-2,1.4,"#8E7B5C");
+      s+=TX(roomX(i)+6,py+11.6,(dd?dd.n:"Room"),12,"#241A10",800);
+      if(S.rooms[i].door)s+=TX(roomX(i)+CW-6,py+11.6,S.rooms[i].door,11,"#22574F",800,"end");
       s+='</g>';
     }
   }
