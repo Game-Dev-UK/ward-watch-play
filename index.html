@@ -287,6 +287,13 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .pal button.done{color:#0E1923;background:#E2A03C;border-color:#E2A03C;margin-left:auto}
 .t3err{position:absolute;inset:auto 12px 12px 12px;padding:10px 12px;border-radius:6px;
   background:#3A1F1F;color:#F3D9D9;font:600 11px/1.4 var(--sans)}
+
+/* ---------- action icons: in, out, and what a button does ---------- */
+.ic{display:inline-flex;width:13px;height:13px;margin-right:6px;vertical-align:-2px;opacity:.9;flex:0 0 auto}
+.ic svg{width:100%;height:100%;display:block}
+.ic.in{color:#4E9A72}
+.ic.out{color:#C08A3E}
+button .ic+*{vertical-align:inherit}
 </style>
 </head>
 <body>
@@ -2424,6 +2431,66 @@ boot();
 
 </script>
 <script>
+
+/* ---------------- action icons ---------------- */
+var ICO={
+ in:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1.6h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6 11V3.4M3.1 6.3L6 3.4l2.9 2.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ out:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1v7.6M3.1 5.7L6 8.6l2.9-2.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 10.4h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+ plus:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2v8M2 6h8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+ cross:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 3l6 6M9 3l-6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+ back:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M10 6H2.4M5.3 3.1L2.4 6l2.9 2.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ sort:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 3h8M2 6h5.5M2 9h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+ expand:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 9l6-6M9 3H6.2M9 3v2.8M9 9H3V3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ swap:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.4h7.4M7.2 2.2l2.2 2.2-2.2 2.2M10 7.6H2.6M4.8 5.4L2.6 7.6l2.2 2.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ person:'<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="3.6" r="2.1" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2.4 10.4c0-2 1.6-3.4 3.6-3.4s3.6 1.4 3.6 3.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+ box:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 3.4h8v6.2H2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M2 3.4L4 1.6h4l2 1.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+ sound:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.6h2L6.6 2v8L4 7.4H2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8.4 4.4a2.6 2.6 0 010 3.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+ pencil:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.6 2.4l2 2M2.6 9.4l.4-2.2 5-5 1.8 1.8-5 5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+ undo:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.4 4.4H8a2.6 2.6 0 010 5.2H4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5.5 2.2L3.2 4.4l2.3 2.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ door:'<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 10.4V2.2h6v8.2M2 10.4h8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7.3" cy="6.4" r=".9" fill="currentColor"/></svg>',
+ gear:'<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="1.9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 1.4v1.5M6 9.1v1.5M1.4 6h1.5M9.1 6h1.5M2.7 2.7l1 1M8.3 8.3l1 1M9.3 2.7l-1 1M3.7 8.3l-1 1" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>'
+};
+function iconFor(e){
+  var a=e.getAttribute("data-a"),arg2=e.getAttribute("data-arg2");
+  if(a==="post")return arg2==="-1"?"out":"in";
+  if(a==="rest"||a==="away"||a==="off")return "out";
+  if(a==="name")return "pencil";
+  if(a==="leaveOrder"||a==="handover")return "swap";
+  if(a==="hire")return "plus";
+  if(a==="demolish")return "cross";
+  if(a==="close")return "back";
+  if(a==="sort")return "sort";
+  if(a==="scale"||a==="widen")return "expand";
+  if(a==="swap"||a==="move")return "swap";
+  if(a==="pick"||a==="place")return "plus";
+  if(a==="carry"||a==="store")return "box";
+  if(a==="answer"||a==="patient"||a==="visitor"||a==="totreat")return "person";
+  if(a==="door")return "door";
+  if(a==="sound")return "sound";
+  if(a==="reset")return "undo";
+  if(a==="motion"||a==="haptics"||a==="strip")return "gear";
+  return "";
+}
+function decorateIcons(root){
+  var els=(root||document).querySelectorAll("button[data-a]"),i,e,k,sp;
+  for(i=0;i<els.length;i++){
+    e=els[i];
+    if(e.querySelector(".ic"))continue;
+    if(!(e.textContent||"").trim())continue;
+    k=iconFor(e);
+    if(!k)continue;
+    sp=document.createElement("span");
+    sp.className="ic "+k;sp.setAttribute("aria-hidden","true");
+    sp.innerHTML=ICO[k];
+    e.insertBefore(sp,e.firstChild);
+  }
+}
+var _icq=0;
+function iconSweep(){
+  if(_icq)return;
+  _icq=requestAnimationFrame(function(){_icq=0;decorateIcons();});
+}
+
 /* ---------------- 3D ward: three.js dollhouse + room editor ---------------- */
 var T3={ready:0,open:0,level:0,editor:null,cell:"bed",az:.72,el:.62,dist:650,expo:0,
         camPos:null,camTgt:null,running:0};
@@ -2752,6 +2819,8 @@ function t3events(){
 }
 
 t3events();
+decorateIcons();
+new MutationObserver(iconSweep).observe(document.getElementById("phone"),{childList:true,subtree:true});
 </script>
 </body>
 </html>
