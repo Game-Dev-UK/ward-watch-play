@@ -1,0 +1,2267 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#14211B">
+<title>Ward Watch</title>
+<style>
+/* ============================================================
+   WARD WATCH. One ward, one visit, one shift at a time.
+   One file, no external request of any kind, built for 390 x 844.
+   Palette quoted from the proposal's own build/theme.css:
+   cream #EFF4F1, deep green #2A6B4F, gilt #D9A021, slate #7C8F97.
+   Gilt is the one accent that means "this needs you". Green is the
+   ward's own structure. Light in every drawing comes from the upper
+   left, so every shape has a lit top edge and a shadow to its right.
+   ============================================================ */
+:root{
+  --ink:#14211B; --body:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --disp:"Avenir Next","Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+  --bg:#EFF4F1; --wall:#F7FAF8; --wall2:#E6EFE9; --floor:#DCE7E0; --shade:#C3D3CA;
+  --line:#38473F; --green:#2A6B4F; --green2:#1F5340; --greenlit:#3FCBA3;
+  --gold:#D9A021; --golddk:#8A5F14; --goldlt:#F0CC78;
+  --dim:#7C8F97; --slate:#4A5A52; --wood:#A9743A; --wooddk:#6E4A22;
+  --paper:#FBF7EC; --paperline:#CFC6AE; --steel:#B9C4C7; --steeldk:#79888D;
+  --bezel:#1B2C23;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#0E1A14;color:var(--ink);
+  font-family:var(--body);font-size:15px;line-height:1.3;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#ground{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(125% 82% at 24% 4%,#20392C 0%,#101E17 62%,#0A130E 100%)}
+#stage{position:relative;width:390px;height:844px;transform-origin:center center;flex:0 0 auto}
+#phone{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);
+  border:1px solid #060D09;box-shadow:0 0 0 6px var(--bezel),0 0 0 7px #060D09,0 30px 64px rgba(0,0,0,.62)}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.dsp{font-family:var(--disp)}
+/* ---------- strip : fixed height, three slots, never shifts ---------- */
+.strip{flex:0 0 auto;padding:10px 12px 8px;background:linear-gradient(#2A6B4F,#1F5340);
+  border-bottom:2px solid #14231B;position:relative}
+.strip:after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:linear-gradient(#3FCBA3,#2A6B4F);opacity:.5}
+.slots{display:flex;gap:8px}
+.slot{flex:1;min-width:0;background:rgba(11,22,17,.42);border:1px solid rgba(63,203,163,.34);
+  border-radius:5px;padding:5px 8px 6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.09)}
+.slot .k{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#BFE3D3}
+.slot b{display:block;font-size:25px;line-height:1.06;color:#FFFFFF;font-family:var(--disp);font-weight:700}
+.slot b.gilt{color:var(--goldlt)}
+.meta{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:6px;
+  font-size:11.5px;line-height:1.25;color:#D3EBDF;letter-spacing:.04em}
+.meta b{color:#FFFFFF;font-weight:600}
+.load{flex:0 0 auto;margin-top:7px;height:19px;background:rgba(9,19,14,.55);border:1px solid rgba(63,203,163,.36);
+  border-radius:3px;position:relative;overflow:hidden}
+.load i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(#5FD8AE,#3FCBA3);
+  transform-origin:left center;transition:transform .3s ease}
+.load.hot i{background:linear-gradient(#F0CC78,#D9A021)}
+.load i{height:17px}
+.load .lab{position:absolute;right:6px;top:2px;font-size:11px;line-height:13px;color:#DFF3E9;letter-spacing:.1em}
+/* ---------- act band ---------- */
+.prompt{flex:0 0 auto;padding:8px 12px 9px;background:var(--wall);border-bottom:1px solid var(--shade)}
+.prompt .pr{display:flex;align-items:baseline;gap:7px}
+.prompt .act{font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--green);
+  text-transform:uppercase}
+.prompt .ttl{font-family:var(--disp);font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.2px}
+.prompt p{margin:4px 0 0;font-size:12.5px;color:var(--slate);line-height:1.35}
+/* ---------- the ward ---------- */
+.wardwrap{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;padding:7px 8px;gap:7px;overflow:hidden}
+#wardart{display:block}
+.plan{position:relative;flex:0 0 auto}
+.hot{position:absolute;inset:0}
+.hot button{position:absolute;background:none;border:2px solid transparent;border-radius:4px;
+  transition:border-color .15s ease,background .15s ease}
+.hot button:hover{border-color:rgba(217,160,33,.5)}
+.hot button:focus-visible{border-color:var(--gold);background:rgba(217,160,33,.12)}
+.hot button.lit{border-color:var(--gold);background:rgba(217,160,33,.16)}
+.legend{display:flex;gap:6px;padding:0 2px 2px}
+.legend div{flex:1;min-width:0;display:flex;align-items:center;gap:5px;font-size:11px;color:var(--slate);line-height:1.15}
+.legend svg{flex:0 0 22px;width:22px;height:22px}
+/* ---------- the bar ---------- */
+.bar{flex:0 0 auto;display:flex;gap:6px;padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(#1F5340,#173F30);border-top:2px solid #12211A}
+.bar button{min-height:56px;border-radius:6px;background:linear-gradient(#F6FBF7,#DDEAE2);
+  border:1px solid #B6C9BE;box-shadow:0 2px 0 #10201A,inset 0 1px 0 #fff;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;padding:4px 3px;font-size:11.5px;font-weight:600;
+  color:var(--green2);letter-spacing:.02em;text-align:center;line-height:1.1}
+.bar button svg{width:22px;height:22px;display:block}
+.bar #b-main{flex:1 1 46%;background:linear-gradient(#F2D68F,#D9A021);border-color:#8A5F14;
+  color:#2A1D02;font-weight:700;font-size:12.5px}
+.bar #b-main svg{width:20px;height:20px}
+.bar button:active{transform:translateY(1px)}
+.bar .nb{flex:1 1 18%}
+.bar button.hold{filter:saturate(.7) brightness(.96)}
+/* ---------- sheets ---------- */
+#veil{position:absolute;left:0;right:0;bottom:0;top:118px;background:rgba(11,26,19,.42);opacity:0;pointer-events:none;
+  transition:opacity .18s ease;z-index:8}
+#veil.on{opacity:1}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;max-height:78%;display:flex;flex-direction:column;
+  background:var(--bg);border-top:3px solid var(--green);border-radius:12px 12px 0 0;
+  box-shadow:0 -10px 30px rgba(6,15,11,.4);opacity:0;visibility:hidden;min-height:44%;
+  transition:opacity .18s ease,visibility 0s linear .18s}
+.sheet.on{opacity:1;visibility:visible;transition:opacity .18s ease}
+.sheet .hd{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px 8px;border-bottom:1px solid var(--shade)}
+.sheet .hd h2{margin:0;font-family:var(--disp);font-size:16px;font-weight:700;letter-spacing:-.2px;flex:1;min-width:0}
+.sheet .hd .sub{font-size:11.5px;color:var(--dim)}
+.sheet .bd{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 12px 14px;
+  display:flex;flex-direction:column;gap:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sheet .bd::-webkit-scrollbar{display:none}
+.sheet .bd>*{flex:0 0 auto}
+.x{flex:0 0 44px;width:44px;height:44px;border-radius:6px;background:var(--wall);border:1px solid var(--shade);
+  display:flex;align-items:center;justify-content:center;color:var(--slate)}
+.x svg{width:20px;height:20px}
+.card{background:var(--wall);border:1px solid var(--shade);border-left:4px solid var(--green);
+  border-radius:5px;padding:9px 10px 10px}
+.card.want{border-left-color:var(--gold);background:#FFFBEF}
+.card h3{margin:0 0 5px;font-family:var(--disp);font-size:14px;font-weight:700}
+.card .r1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card .r1 b{font-family:var(--disp);font-size:16px}
+.card p{margin:5px 0 0;font-size:12.5px;color:var(--slate);line-height:1.4}
+.card p b{color:var(--ink)}
+.card .tag{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  background:var(--green);color:#EAF7F0;border-radius:3px;padding:2px 6px;margin-top:6px}
+.card .tag.need{background:var(--gold);color:#2A1D02}
+.card .tag.block{background:#2C3A32;color:#EFE7D6}
+.card .tag.ok{background:#DDEAE2;color:var(--green2)}
+.card button,.wide{display:block;width:100%;min-height:46px;margin-top:8px;border-radius:5px;
+  background:linear-gradient(#2A6B4F,#1F5340);color:#EFF9F3;border:1px solid var(--green2);
+  font-size:12.5px;font-weight:600;letter-spacing:.02em;padding:6px 8px;line-height:1.2}
+.card button.alt,.wide.alt{background:linear-gradient(#F6FBF7,#DDEAE2);color:var(--green2);border-color:#B6C9BE}
+.card button.gilt{background:linear-gradient(#F2D68F,#D9A021);color:#2A1D02;border-color:#8A5F14}
+.card button.warnx{background:linear-gradient(#6E4A22,#4F3416);color:#F6E7CE;border-color:#3A250F}
+.rowline{display:flex;gap:6px}
+.rowline button{flex:1 1 0;margin-top:8px}
+.hint{font-size:11.5px;color:var(--dim);line-height:1.35}
+.sorts{display:flex;gap:6px}
+.sorts button{flex:1 1 0;min-height:44px;border-radius:5px;border:1px solid var(--shade);background:var(--wall);
+  font-size:11.5px;color:var(--slate);font-weight:600}
+.sorts button.on{background:var(--green);color:#EAF7F0;border-color:var(--green2)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1 1 0;min-height:44px;border-radius:5px;border:1px solid var(--shade);background:var(--wall);
+  font-size:11.5px;color:var(--slate)}
+.seg button.on{background:var(--green);color:#EAF7F0;border-color:var(--green2)}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:48px;
+  padding:6px 10px;background:var(--wall);border:1px solid var(--shade);border-radius:5px;text-align:left}
+.sw b{font-size:13px;font-weight:600;display:block}
+.sw span{font-size:11.5px;color:var(--dim);display:block;margin-top:1px;line-height:1.3}
+.pill{flex:0 0 auto;font-size:11.5px;font-weight:700;letter-spacing:.08em;border-radius:11px;padding:4px 9px;
+  background:#E4EBE6;color:var(--slate);border:1px solid var(--shade)}
+.pill.on{background:var(--green);color:#EFF9F3;border-color:var(--green2)}
+.pill.gilt{background:var(--gold);color:#2A1D02;border-color:var(--golddk)}
+.wline{background:var(--wall);border:1px solid var(--shade);border-radius:5px;padding:8px 10px}
+.wline b{font-family:var(--disp);font-size:13px}
+.wline p{margin:3px 0 0;font-size:12.5px;color:var(--slate);line-height:1.4}
+.wline .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.mini{display:flex;gap:8px;align-items:center}
+.mini svg{flex:0 0 40px;width:40px;height:40px}
+/* ---------- modal ---------- */
+#md-call{position:absolute;inset:0;z-index:12;display:flex;align-items:flex-end;justify-content:center;
+  padding:0 0 96px;background:rgba(11,26,19,.5);opacity:0;visibility:hidden;
+  transition:opacity .18s ease,visibility 0s linear .18s}
+#md-call.on{opacity:1;visibility:visible;transition:opacity .18s ease}
+#md-call .box{width:100%;max-width:360px;background:var(--bg);border-top:3px solid var(--gold);
+  border-radius:12px;padding:12px 12px 14px;transform:translateY(14px);transition:transform .2s ease;
+  box-shadow:0 -8px 26px rgba(6,15,11,.45)}
+#md-call.on .box{transform:translateY(0)}
+#md-call .who{display:flex;gap:9px;align-items:center}
+#md-call .who svg{flex:0 0 48px;width:48px;height:48px}
+#md-call h2{margin:0;font-family:var(--disp);font-size:15px;font-weight:700}
+#md-call .sub{font-size:11.5px;color:var(--dim);margin-top:1px}
+#md-call p{margin:9px 0 0;font-size:12.5px;color:var(--ink);line-height:1.4}
+#md-call button{display:block;width:100%;min-height:52px;margin-top:8px;border-radius:6px;border:1px solid #B6C9BE;
+  background:linear-gradient(#F6FBF7,#DDEAE2);color:var(--green2);font-size:13px;font-weight:700;
+  padding:6px 10px;line-height:1.25}
+#md-call button.gilt{background:linear-gradient(#F2D68F,#D9A021);color:#2A1D02;border-color:#8A5F14}
+#md-call button span{display:block;font-size:11.5px;font-weight:400;color:#4E5F56;margin-top:2px}
+.gbody{position:absolute;left:0;right:0;bottom:0;top:0;overflow:hidden}
+#phone.nomotion .sheet,#phone.nomotion #md-call,#phone.nomotion #md-call .box{transition:none}
+#phone.nomotion .load i{transition:none}
+.slot{text-align:left}
+</style>
+</head>
+<body>
+<div id="ground"><div id="stage"><div id="phone">
+
+  <div class="strip">
+    <div class="slots">
+      <div class="slot"><span class="k">Cash</span><b id="s-cash" class="num">0</b></div>
+      <button class="slot" data-a="door" aria-label="Open the ward door and the queue"><span class="k">Queue</span><b id="s-queue" class="num">0</b></button>
+      <div class="slot"><span class="k" id="s-thirdk">Load</span><b id="s-third" class="num">0</b></div>
+    </div>
+    <div class="meta"><span id="s-place">Bay Four</span><span id="s-day">Day 1</span><span id="s-grade">Grade new</span></div>
+    <div class="load" id="s-loadwrap"><i id="s-loadfill"></i><span class="lab" id="s-loadlab">LOAD 0</span></div>
+  </div>
+
+  <div class="prompt">
+    <div class="pr"><span class="act" id="p-act">Act 1</span><span class="ttl" id="p-title">The door</span></div>
+    <p id="p-line">The ward is open.</p>
+  </div>
+
+  <div class="wardwrap" id="wardwrap">
+    <div class="plan" id="plan">
+    <svg id="wardart" viewBox="0 0 374 452" preserveAspectRatio="xMidYMid meet" role="img"
+         aria-label="A cutaway plan of the ward, corridor between six room slots"></svg>
+    <div class="hot" id="hot"></div>
+    </div>
+    <div class="legend" id="legend">
+      <div><svg viewBox="0 0 22 22"><rect x="1" y="4" width="20" height="14" rx="2" fill="#F7FAF8" stroke="#38473F" stroke-width="1.2"/><path d="M4 15h14v-4c0-1-1-1.6-2-1.6H8V7.4C8 6.4 7 5.8 6 5.8S4 6.4 4 7.4z" fill="#2A6B4F"/><rect x="4.6" y="12" width="4.6" height="2.2" fill="#3FCBA3"/></svg><span>Working</span></div>
+      <div><svg viewBox="0 0 22 22"><rect x="1" y="4" width="20" height="14" rx="2" fill="#F7FAF8" stroke="#38473F" stroke-width="1.2"/><circle cx="11" cy="11" r="4.6" fill="none" stroke="#D9A021" stroke-width="1.6"/><path d="M7.6 14.4l6.8-6.8" stroke="#D9A021" stroke-width="1.6"/></svg><span>Waiting on staff</span></div>
+      <div><svg viewBox="0 0 22 22"><rect x="1" y="4" width="20" height="14" rx="2" fill="#E4EBE6" stroke="#38473F" stroke-width="1.2"/><path d="M3 11h16M3 13.6h16" stroke="#2C3A32" stroke-width="2.6" stroke-dasharray="3 2"/></svg><span>Blocked</span></div>
+      <div><svg viewBox="0 0 22 22"><rect x="1" y="4" width="20" height="14" rx="2" fill="#FBFDFC" stroke="#B6C9BE" stroke-width="1.2" stroke-dasharray="3 2"/></svg><span>Open slot</span></div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button id="b-main" class="dsp">Walk the round</button>
+    <button id="b-build" class="nb" data-a="build"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="9" height="5" fill="#2A6B4F"/><rect x="3" y="12" width="13" height="5" fill="#3FCBA3"/><rect x="12.6" y="6" width="8.4" height="5" fill="#1F5340"/></svg>Build</button>
+    <button id="b-roster" class="nb" data-a="roster"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.4" r="3.6" fill="#2A6B4F"/><path d="M4.6 20c0-4.2 3.3-7 7.4-7s7.4 2.8 7.4 7z" fill="#3FCBA3"/></svg>Roster</button>
+    <button id="b-chain" class="nb" data-a="chain"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" fill="#2A6B4F"/><rect x="12" y="8" width="7" height="12" fill="#3FCBA3"/><rect x="12" y="4" width="7" height="3" fill="#D9A021"/></svg>Chain</button>
+  </div>
+
+  <div id="veil" data-a="close"></div>
+
+  <div class="sheet" id="sh-room" role="dialog" aria-label="Room card"></div>
+  <div class="sheet" id="sh-patient" role="dialog" aria-label="Patient card"></div>
+  <div class="sheet" id="sh-build" role="dialog" aria-label="Build sheet"></div>
+  <div class="sheet" id="sh-staff" role="dialog" aria-label="Staff panel"></div>
+  <div class="sheet" id="sh-report" role="dialog" aria-label="Shift report"></div>
+  <div class="sheet" id="sh-choice" role="dialog" aria-label="Choice"></div>
+  <div class="sheet" id="sh-chain" role="dialog" aria-label="The chain"></div>
+
+  <div id="md-call" role="dialog" data-a="callLater" aria-label="The staff raise a problem"><div class="box" id="md-body"></div></div>
+
+</div></div></div>
+<script>
+/* ============================================================
+   WARD WATCH 1.0
+   1. THE CONTENT. Rooms, invented conditions, staff, moods.
+   Every condition here is invented, every treatment is designed
+   backwards from it, and no real disease is ever named.
+   ============================================================ */
+var ROMS=[
+ {id:"triage",n:"Triage",cost:900,door:110,kit:0,beds:0,role:"nurse",
+  does:"sorts the queue into a seen-in order the ward then follows"},
+ {id:"bay",n:"Bay",cost:1200,door:120,kit:0,beds:2,role:"",
+  does:"beds where patients wait, and the card-swap problem"},
+ {id:"treat",n:"Treatment room",cost:1800,door:70,kit:90,beds:1,role:"nurse",
+  does:"where the invented condition is treated and the patient discharged"},
+ {id:"day",n:"Day room",cost:700,door:120,kit:0,beds:0,role:"",
+  does:"where patients and staff recover, and mood comes back"},
+ {id:"store",n:"Store",cost:600,door:70,kit:0,beds:0,role:"",
+  does:"holds the kit, and the kit that will not fit through a door"},
+ {id:"staff",n:"Staff room",cost:800,door:100,kit:0,beds:0,role:"",
+  does:"where staff recover off the floor, and the report is written from"},
+ {id:"office",n:"Office",cost:1000,door:100,kit:0,beds:0,role:"admin",
+  does:"the books, the standing grade and the register"},
+ {id:"lounge",n:"Discharge lounge",cost:650,door:120,kit:0,beds:3,role:"",
+  does:"where patients wait to go home, and a bay comes free sooner"},
+ {id:"coat",n:"Coat room",cost:820,door:100,kit:0,beds:0,role:"",
+  does:"dries the damp hats on a rail over a radiator, and pays better for that case"}
+];
+var CONDS=[
+ {n:"Soggy Elbow",room:"day",pay:120,
+  joke:"arrives with one sleeve wrung out. A mop, a chair and a firm talk."},
+ {n:"Reversible Enthusiasm",room:"day",pay:110,
+  joke:"delighted about everything, including the queue. A sober room and a firm chair."},
+ {n:"Mild Levitation",room:"bay",pay:150,
+  joke:"hovers a hand's width above the bed. A weighted blanket and a sensible talk."},
+ {n:"Spontaneous Fanfare",room:"treat",pay:210,
+  joke:"arrives accompanied by a small noise. A quiet room and a signed form."},
+ {n:"Persistent Punctuality",room:"office",pay:180,
+  joke:"early for everything, including their own discharge. An appointment card and a slow clock."},
+ {n:"Inkling Knee",room:"treat",pay:230,
+  joke:"the knee has a suspicion the patient does not. A second opinion from a porter."},
+ {n:"Damp Hat",room:"store",pay:140,
+  joke:"the hat will not dry and it is not the weather. A radiator and a hat stand."}
+];
+var FIRSTS=["Ada","Bram","Cleo","Dara","Ellis","Fen","Greta","Hal","Ines","Jory","Kit","Lorna",
+ "Mira","Nell","Osric","Pip","Quinn","Rosa","Sim","Tessa","Una","Viggo","Wren","Yara"];
+var LASTS=["Ashcroft","Bell","Cornwall","Dunne","Enders","Fairlie","Gorse","Hollis","Ives","Jerrow",
+ "Kell","Lund","Mabb","Norcott","Oyra","Pember","Quill","Rask","Sowden","Tarn","Underhill","Vane"];
+var ROLES=["porter","nurse","senior nurse","doctor","consultant","administrator"];
+var TRAITS=["kind","hopeless with numbers","brilliant","frightened of the equipment","brisk","thorough",
+ "forgetful","deft","stubborn","unhurried","popular","methodical"];
+var MOODS={
+ Steady:{w:"Steady",eff:"nothing",speed:1,err:1,post:"up"},
+ Brisk:{w:"Brisk",eff:"faster, and fewer errors",speed:1.4,err:.6,post:"lean"},
+ Flat:{w:"Flat",eff:"slower",speed:.6,err:1,post:"down"},
+ Frayed:{w:"Frayed",eff:"more errors, and the interesting ones",speed:.9,err:1.8,post:"tilt"},
+ Done:{w:"Done",eff:"refuses the room it is in and moves itself",speed:.5,err:2.2,post:"sit"}
+};
+var ROOMCOL={triage:"#2A6B4F",bay:"#2A6B4F",treat:"#1F5340",day:"#2A6B4F",store:"#4A5A52",
+ staff:"#1F5340",office:"#4A5A52",lounge:"#2A6B4F",coat:"#4A5A52"};
+var UNHAPPY={
+ door:"the door is unstaffed, so the queue started in the corridor",
+ card:"the card and the patient do not match",
+ kit:"the scanner has not reached the room",
+ blocked:"the room is blocked at the door",
+ seen:"nobody has been to see them yet",
+ bay:"there is no free bed",
+};
+/* the shift report is written in the staff's own voices, from the events the tick replayed */
+var REPORTS=[
+ {t:"good",l:["{who} got through {n} cases on {room} without a single card read wrong.",
+   "The night went quietly. {who} counted the beds twice and they came out even.",
+   "{who} took the scanner round the bays by hand and saved the round an hour."]},
+ {t:"flat",l:["{who} filed the whole shift under the wrong week. Competent at everything else.",
+   "{who} stood in the corridor for a while and then went to the day room.",
+   "The queue did not move much. {who} kept the cards straight, which is the part that matters."]},
+ {t:"bad",l:["{who} fitted the wrong kit and wrote it up honestly, which the register notes.",
+   "A card was closed against the wrong bed. {who} found it at the end of the shift.",
+   "{who} is frayed and says so. The kettle in the staff room did most of the work."]}
+];
+/* ============================================================
+   2. THE STATE, the seed, and the save
+   ============================================================ */
+var SAVE_KEY="ward-watch";
+var S=null;
+var _seed=1,_s=1;
+function seedRng(n){_seed=(n|0)||1;_s=_seed>>>0;return true;}
+function rnd(){_s=(_s+0x6D2B79F5)>>>0;var t=_s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);
+  return ((t^(t>>>14))>>>0)/4294967296;}
+function ri(a,b){return a+Math.floor(rnd()*(b-a+1));}
+function pick(a){return a[Math.floor(rnd()*a.length)];}
+var _uid=0;
+function uid(){_uid++;return _uid;}
+function clamp(v,a,b){return v<a?a:(v>b?b:v);}
+function money(n){return "\u00A3"+Math.round(n).toLocaleString("en-GB");}
+
+function newStaff(role){
+  var t1=pick(TRAITS),t2=pick(TRAITS),g=0;
+  while(t2===t1&&g++<8)t2=pick(TRAITS);
+  return {id:uid(),first:pick(FIRSTS),last:pick(LASTS),role:role||pick(ROLES),
+    traits:[{n:t1,from:"at hire",c:0},{n:t2,from:"at hire",c:0}],
+    mood:"Steady",moodN:1,last:"came on shift",at:-1,busy:0,tired:0,
+    speed:1,acts:0,mistakes:0,case0:""};
+}
+function newPatient(){
+  var c=pick(CONDS);
+  var cid=uid();
+  return {id:uid(),first:pick(FIRSTS),last:pick(LASTS),cond:c.n,cj:c.joke,croom:c.room,cj2:c.n,
+    pay:c.pay,st:"arriving",wait:0,bed:0,card:cid,cardCond:c.n,room:-1,why:UNHAPPY.door,treated:0,
+    hair:HAIRS[Math.floor(rnd()*HAIRS.length)]};
+}
+function freshWard(){
+  var rooms=[],i;
+  for(i=0;i<6;i++)rooms.push({t:"",w:0,door:0,kit:0,fitted:0,staff:-1,blocked:0,kitIn:""});
+  rooms[0]=mkRoom("triage",0); rooms[1]=mkRoom("bay",1); rooms[2]=mkRoom("bay",2); rooms[3]=mkRoom("treat",3);
+  var st=[newStaff("nurse"),newStaff("porter"),newStaff("doctor"),newStaff("senior nurse")];
+  st[0].at=0; st[0].last="took the triage desk at the change of shift";
+  st[1].at=-1; st[1].last="is on the ward door";
+  st[2].at=3; st[2].last="is in the treatment room";
+  return {cash:1650,day:1,visit:1,acts:0,clock:0,load:0,act:1,actWas:1,peak:0,standing:0,grade:0,graded:0,
+    register:[],unlocks:["bay-four"],rooms:rooms,staff:st,patients:[],treated:0,wrongKit:0,deferred:0,
+    slots:[0,0],
+    seen:0,misplace:0,snag:0,handover:"",visitor:"",visited:0,report:[],away:0,awayShifts:0,
+    pending:null,choice:"",problems:[],lastSeen:Date.now(),sound:0,motion:1,haptics:0,
+    scale:1,strip:"load",sort:"role",done:0,loopStarted:0,sheet:"",with:{},note:"",rename:0};
+}
+function mkRoom(t,slot){
+  var d=null,i;
+  for(i=0;i<ROMS.length;i++)if(ROMS[i].id===t)d=ROMS[i];
+  if(!d)return {t:"",w:0,door:0,kit:0,fitted:0,staff:-1,blocked:0,kitIn:""};
+  return {t:t,w:1,door:d.door,kit:d.kit,fitted:1,staff:-1,blocked:0,kitIn:""};
+}
+function kitFits(t){ /* the ward's own trolley kit fits; the scanner that lands later does not */
+  return 1;
+}
+function roomDef(t){for(var i=0;i<ROMS.length;i++)if(ROMS[i].id===t)return ROMS[i];return null;}
+function roomAt(slot){return (slot>=0&&slot<6)?S.rooms[slot]:null;}
+function roomName(r){var d=roomDef(r.t);return d?d.n:"open slot";}
+function staffById(id){for(var i=0;i<S.staff.length;i++)if(S.staff[i].id===id)return S.staff[i];return null;}
+function patientById(id){for(var i=0;i<S.patients.length;i++)if(S.patients[i].id===id)return S.patients[i];return null;}
+function syncRooms(){
+  var i,st;
+  for(i=0;i<6;i++)S.rooms[i].staff=-1;
+  for(i=0;i<S.staff.length;i++){st=S.staff[i];if(st.at>=0&&st.at<6)S.rooms[st.at].staff=st.id;}
+  S.onFloor=0;
+  for(i=0;i<S.staff.length;i++)if(S.staff[i].at>=-1)S.onFloor++;
+}
+function staffAt(slot){for(var i=0;i<S.staff.length;i++)if(S.staff[i].at===slot)return S.staff[i];return null;}
+function freeStaff(){var o=[],i;for(i=0;i<S.staff.length;i++)if(S.staff[i].at<0&&S.staff[i].mood!=="Done")o.push(S.staff[i]);return o;}
+function roomsOf(t){var o=[],i;for(i=0;i<S.rooms.length;i++)if(S.rooms[i].t===t)o.push(i);return o;}
+function bayBeds(){
+  var beds=[],i,k,r;
+  for(i=0;i<6;i++){r=S.rooms[i];if(r.t!=="bay")continue;for(k=0;k<2;k++)beds.push({slot:i,bed:k+1});}
+  return beds;
+}
+function bayUsed(slot,bed){
+  for(var i=0;i<S.patients.length;i++){
+    var p=S.patients[i];
+    if(p.room===slot&&p.bed===bed&&p.st!=="home"&&p.st!=="discharge")return p;
+  }
+  return null;
+}
+function queueList(){
+  var o=[],i;
+  for(i=0;i<S.patients.length;i++)if(S.patients[i].st==="queue"||S.patients[i].st==="arriving")o.push(S.patients[i]);
+  o.sort(function(a,b){if(a.ord!==b.ord)return a.ord-b.ord;return a.id-b.id;});
+  return o;
+}
+function distanceFromDoor(slot){return slot+2;}
+function journeyActs(slot){var d=distanceFromDoor(slot);return d>6?1+Math.floor((d-6)/3)*1:1;}
+/* ============================================================
+   3. SAVE AND LOAD
+   ============================================================ */
+function save(){
+  try{
+    var t={v:1,cash:S.cash,day:S.day,visit:S.visit,standing:S.standing,grade:S.grade,graded:S.graded,
+      treated:S.treated,wrongKit:S.wrongKit,deferred:S.deferred,seen:S.seen,misplace:S.misplace,snag:S.snag,
+      register:S.register.slice(-40),unlocks:S.unlocks.slice(),rooms:S.rooms,staff:S.staff,patients:S.patients,
+      sound:S.sound,motion:S.motion,haptics:S.haptics,scale:S.scale,strip:S.strip,sort:S.sort,
+      away:S.away,lastSeen:Date.now(),report:S.report.slice(0,8),pending:S.pending,handover:S.handover};
+    localStorage.setItem(SAVE_KEY,JSON.stringify(t));
+  }catch(e){}
+}
+function load(){
+  S=freshWard();
+  var raw=null;
+  try{raw=localStorage.getItem(SAVE_KEY);}catch(e){raw=null;}
+  if(!raw)return false;
+  try{
+    var t=JSON.parse(raw);
+    S.cash=t.cash;S.day=t.day;S.visit=t.visit;S.standing=t.standing||0;S.grade=t.grade||0;
+    S.graded=t.graded||0;S.treated=t.treated||0;S.wrongKit=t.wrongKit||0;S.deferred=t.deferred||0;
+    S.seen=t.seen||0;S.misplace=t.misplace||0;S.snag=t.snag||0;
+    if(t.register)S.register=t.register;
+    if(t.unlocks&&t.unlocks.length)S.unlocks=t.unlocks;
+    if(t.rooms&&t.rooms.length===6)S.rooms=t.rooms;
+    if(t.staff&&t.staff.length)S.staff=t.staff;
+    if(t.patients)S.patients=t.patients;
+    S.sound=t.sound?1:0;S.motion=t.motion===0?0:1;S.haptics=t.haptics?1:0;
+    S.scale=t.scale||1;S.strip=t.strip||"load";S.sort=t.sort||"role";
+    S.pending=t.pending||null;S.handover=t.handover||"";
+    if(t.report)S.report=t.report;
+    var hours=t.lastSeen?(Date.now()-t.lastSeen)/3600000:0;
+    S.away=Math.max(0,t.away||0)+ (hours>0.05?hours:0);
+    return !!S.away;
+  }catch(e){S=freshWard();return false;}
+}
+
+
+/* ============================================================
+   4. THE ART. One cutaway of the ward, drawn in code.
+   Light comes from the upper left: every surface carries a lit top
+   edge and a shadow thrown to its lower right. Nothing here is a
+   flat rectangle and nothing here is a picture of a person that
+   could be mistaken for a diagram of one.
+   ============================================================ */
+var VW=374, VH=452;
+var COLX=[12,130,248], CW=118;
+var NY=12, NH=156, CY=172, CH=96, SY=272, SH=156;
+var DEFS='<defs>'
+ +'<linearGradient id="lit" x1="0" y1="0" x2="0.75" y2="1">'
+ +'<stop offset="0" stop-color="#ffffff" stop-opacity=".34"/>'
+ +'<stop offset=".46" stop-color="#ffffff" stop-opacity="0"/>'
+ +'<stop offset="1" stop-color="#14211B" stop-opacity=".20"/></linearGradient>'
+ +'<linearGradient id="floorw" x1="0" y1="0" x2="1" y2="1">'
+ +'<stop offset="0" stop-color="#ffffff" stop-opacity=".55"/>'
+ +'<stop offset="1" stop-color="#CBD9D1" stop-opacity=".35"/></linearGradient>'
+ +'<radialGradient id="cone" cx=".12" cy="0" r="1.1">'
+ +'<stop offset="0" stop-color="#F0CC78" stop-opacity=".46"/>'
+ +'<stop offset="1" stop-color="#F0CC78" stop-opacity="0"/></radialGradient>'
+ +'<linearGradient id="shaft" x1="0" y1="0" x2="1" y2="1">'
+ +'<stop offset="0" stop-color="#FFF6DC" stop-opacity=".5"/>'
+ +'<stop offset="1" stop-color="#FFF6DC" stop-opacity="0"/></linearGradient>'
+ +'<linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">'
+ +'<stop offset="0" stop-color="#E8EFF0"/><stop offset=".55" stop-color="#B9C4C7"/>'
+ +'<stop offset="1" stop-color="#79888D"/></linearGradient>'
+ +'</defs>';
+function R(x,y,w,h,f,rx,o){var s='<rect x="'+x+'" y="'+y+'" width="'+Math.max(0,w)+'" height="'+Math.max(0,h)+'" fill="'+f+'"';
+  if(rx)s+=' rx="'+rx+'"'; if(o!=null)s+=' opacity="'+o+'"'; return s+'/>';}
+function LIT(x,y,w,h,rx,o){return R(x,y,w,h,"url(#lit)",rx,o);}
+function SOL(x,y,w,h,f,rx,o){return R(x,y,w,h,f,rx,o)+LIT(x,y,w,h,rx);}
+function OUT(x,y,w,h,f,s,rx){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+f+'"'+(rx?' rx="'+rx+'"':'')+
+  ' stroke="'+s+'" stroke-width="1.3"/>';}
+function TX(x,y,t,s,f,w,anc){return '<text x="'+x+'" y="'+y+'" font-size="'+s+'" fill="'+f+'"'+
+  (w?' font-weight="'+w+'"':'')+' font-family="Avenir Next, Segoe UI, system-ui, sans-serif"'+
+  (anc?' text-anchor="'+anc+'"':'')+'>'+t+'</text>';}
+/* a shadow thrown down and to the right of whatever stands on the floor */
+function CAST(x,y,w,o){return '<ellipse cx="'+(x+w/2+4)+'" cy="'+y+'" rx="'+(w*0.62)+'" ry="3.4" fill="#14211B" opacity="'+(o||.15)+'"/>';}
+function LEGS(x,y,w,ht,f){return R(x,y,w,ht,f)+R(x+w-3,y,3,ht,f);}
+/* a person: head, body, apron, and a posture that says the mood */
+function person(x,y,o){
+  var mood=o.mood||"",role=o.role||"",c=o.c||"#2A6B4F",cf=o.cf||"#3FCBA3",s="";
+  var tilt=(mood==="Frayed"?-11:(mood==="Done"?3:0)), lean=(mood==="Brisk"?5:0);
+  var sh=(mood==="Flat"||mood==="Done")?1:0, sit=(mood==="Done");
+  s+='<g transform="translate('+x+','+y+') rotate('+tilt+') translate('+(lean*-0.6)+',0)">';
+  s+=CAST(-5,-1,20,.2);
+  if(sit){s+=SOL(3,-9,12,7,"#79888D",1);}
+  s+=LEGS(-4,-9,16,sit?7:11,"#2E3F37");
+  s+=SOL(-6,-9-sh*1.5-(sit?0:0),17,16-(sit?7:0),c,3);
+  s+=R(-6,-9-sh*1.5-(sit?0:0),17,3,cf,1,.55);
+  if(role==="porter")s+=SOL(3.5,-20-sh*1.5,9,5,"#8FA79B",1);
+  s+=SOL(-1.5,-26-sh*2,10,9,"#EFD9BC",4);
+  s+='<path d="M-1.5,-26 a5,4.5 0 0 1 10,0 l-10,0 z" fill="'+o.hair+'"/>';
+  if(mood==="Brisk")s+=R(9,-17,7,2.6,"#EFD9BC",1);
+  if(o.arm!==0)s+=R(-8.4,-7,3.4,9,"#EFD9BC",1.4);
+  s+='</g>';
+  return s;
+}
+function bedFig(x,y,who){
+  var s="";
+  s+=CAST(x+2,y+40,52,.16);
+  s+=R(x,y+32,3,10,"#4A5A52")+R(x+52,y+32,3,10,"#4A5A52");
+  s+=SOL(x,y+8,4,26,"#8FA79B",1);
+  s+=SOL(x+4,y+22,52,13,"#E9F0EC",2);
+  s+=R(x+4,y+33,52,3,"#C3D3CA");
+  s+=SOL(x+26,y+21,30,15,"#2A6B4F",2);
+  s+=R(x+28,y+22,26,2,"#3FCBA3");s+=R(x+28,y+27,26,1,"#1F5340",null,.6);
+  s+=SOL(x+8,y+19,11,8,"#FDFDFB",2);
+  if(who){
+    s+=SOL(x+10,y+14,9,8,"#EFD9BC",3);
+    s+='<path d="M10,'+y+' a4.5,4 0 0 1 9,0 z" fill="'+who.hair+'" transform="translate(0,0)"/>';
+    s+=R(x+9,y+19,11,4,"#E4EBE6",1);
+  }
+  s+=R(x+56,y+22,9,13,"#FBF7EC",1)+R(x+54,y+21,5,3,"#D9A021",1);
+  s+=R(x+58,y+25,5,1,"#8C9A93")+R(x+58,y+28,5,1,"#8C9A93")+R(x+58,y+31,5,1,"#8C9A93");
+  return s;
+}
+function chair(x,y,f,flip){
+  var s='<g transform="translate('+x+','+y+')'+(flip?' scale(-1,1)':'')+'">';
+  s+=CAST(0,0,17,.16);
+  s+=SOL(-1,-13,17,3,f,1);s+=SOL(-1,-13,3,13,f,1);
+  s+=R(0,-1,2,3,"#2E3F37")+R(13,-1,2,3,"#2E3F37");
+  s+='</g>';
+  return s;
+}
+function desk(x,y,w){
+  var s="";
+  s+=CAST(x,y,w,.15);
+  s+=SOL(x,y-22,w,7,"#A9743A",1);
+  s+=R(x,y-15,w,3,"#6E4A22");
+  s+=R(x+3,y-12,4,12,"#6E4A22")+R(x+w-7,y-12,4,12,"#6E4A22");
+  s+=SOL(x+6,y-30,15,9,"#3E4A50",1)+LIT(x+7,y-29,13,7,1);
+  s+=R(x+7,y-28,12,6,"url(#floorw)",null,.7);
+  s+=R(x+12,y-21,3,2,"#2E3F37");
+  return s;
+}
+function plant(x,y){
+  var s="";
+  s+=CAST(x,y,14,.18);
+  s+=SOL(x-7,y-15,14,15,"#B07A46",2);
+  s+=R(x-7,y-11,14,3,"#8A5F2E");
+  s+='<path d="M0,-15 C-2,-26 -11,-31 -15,-33 C-8,-22 -5,-18 0,-15z" fill="#3FCBA3"/>';
+  s+='<path d="M0,-15 C3,-27 12,-30 16,-34 C9,-23 5,-18 0,-15z" fill="#2A6B4F"/>';
+  s+='<path d="M0,-15 C-1,-24 -1,-30 0,-36 C3,-28 3,-21 0,-15z" fill="#6FD8B4"/>';
+  s+='<path d="M-2,-14 C-6,-22 -13,-24 -18,-27" stroke="#1F5340" stroke-width="1.4" fill="none"/>';
+  return '<g transform="translate('+x+','+y+')">'+s+'</g>';
+}
+function windowX(x,y,w){
+  var s="";
+  s+=R(x+w+4,y-30,26,34,"url(#shaft)");
+  s+=SOL(x,y-34,w,26,"#CFE3DA",2);
+  s+=R(x+3,y-31,w-6,20,"#DCEBF3",1);
+  s+=R(x+w/2-1,y-31,2,20,"#9FB3AE")+R(x+3,y-21,w-6,2,"#9FB3AE");
+  s+='<path d="M'+(x+4)+','+(y-30)+' l'+(w-8)+',0 l-6,8 l-'+(w-8)+',0 z" fill="#FFF6DC" opacity=".7"/>';
+  return s;
+}
+function trolley(x,y,wide){
+  var s="";
+  s+=CAST(x,y,wide?22:16,.18);
+  s+=SOL(x,y-24,wide?22:16,20,"url(#metal)",1);
+  s+=R(x+2,y-22,(wide?22:16)-4,2,"#D9A021");
+  s+=R(x+1,y-4,2,4,"#5B686C")+R(x+(wide?19:13),y-4,2,4,"#5B686C");
+  s+=SOL(x+3,y-32,wide?14:10,8,"#E9F0EC",1);
+  s+=R(x+3,y-29,wide?14:10,2,"#79888D");
+  return s;
+}
+function lamp(x,y){
+  var s="";
+  s+='<g transform="translate('+x+','+y+')">';
+  s+=CAST(-3,0,12,.16);
+  s+=R(-2,-2,10,3,"#5B686C",1)+R(2,-14,3,12,"#5B686C");
+  s+=SOL(-1,-20,10,7,"#B9C4C7",2);
+  s+=R(-6,-16,14,2,"#79888D");
+  s+='<path d="M-30,14 L-8,-13 L8,-13 L34,14 z" fill="url(#cone)"/>';
+  s+='</g>';
+  return s;
+}
+
+
+/* ---------------- the rooms ---------------- */
+function baseY(i){return (i<3?NY+NH-6:SY+SH-6);}
+function roomX(i){return COLX[i%3];}
+function furn(i){
+  var r=S.rooms[i],x=roomX(i),b=baseY(i),s="",k;
+  if(r.t==="bay"){
+    s+='<g transform="translate('+(x+2)+','+(b-40)+') scale(.84)">'+bedFig(0,0,occupantOf(i,1))+'</g>';
+    s+='<g transform="translate('+(x+60)+','+(b-40)+') scale(.84)">'+bedFig(0,0,occupantOf(i,2))+'</g>';
+  }else if(r.t==="triage"){
+    s+=desk(x+14,b-6,46);
+    s+='<g transform="translate('+(x+76)+','+(b-2)+')">'+chair(0,0,"#2A6B4F")+'</g>';
+    s+=SOL(x+12,NY+18,42,30,"#FBFDFC",3);
+    s+=R(x+14,NY+21,38,2,"#8C9A93")+R(x+14,NY+26,30,2,"#8C9A93")+R(x+14,NY+31,34,2,"#8C9A93");
+    s+=R(x+12,NY+18,42,4,"#2A6B4F",2);
+    s+=R(x+12,NY+22,3,24,"#D9A021");
+    if(staffAt(i))s+=person(x+40,b-10,{mood:staffAt(i).mood,role:staffAt(i).role,hair:"#4A3524"});
+  }else if(r.t==="treat"){
+    s+='<g transform="translate('+(x+6)+','+(b-38)+') scale(.9)">'+bedFig(0,0,occupantOf(i,1))+'</g>';
+    s+=trolley(x+78,b-4,0);
+    s+=lampCone(x+96,b-4);
+    if(staffAt(i))s+=person(x+62,b-10,{mood:staffAt(i).mood,role:staffAt(i).role,hair:"#2E3F37"});
+  }else if(r.t==="day"){
+    s+=windowX(x+22,NY+16,58);
+    s+='<g transform="translate('+(x+16)+','+(b-2)+')">'+chair(0,0,"#2A6B4F")+'</g>';
+    s+='<g transform="translate('+(x+56)+','+(b-2)+')">'+chair(0,0,"#1F5340",true)+'</g>';
+    s+=plant(x+100,b);
+    s+=R(x+8,b-6,70,6,"#2A6B4F",3,null,.25);
+  }else if(r.t==="store"){
+    s+=SOL(x+10,b-58,86,8,"#A9743A",1);
+    s+=SOL(x+10,b-30,86,8,"#A9743A",1);
+    s+=R(x+10,b-54,86,3,"#6E4A22");s+=R(x+10,b-26,86,3,"#6E4A22");
+    for(k=0;k<3;k++)s+=SOL(x+14+k*28,b-52,22,18,k%2?"#C79A55":"#B9C4C7",1);
+    for(k=0;k<2;k++)s+=SOL(x+20+k*32,b-24,26,20,k?"#C79A55":"#8FA79B",1);
+    s+=hatStand(x+12,b);
+  }else if(r.t==="staff"){
+    s+=SOL(x+8,b-40,74,7,"#A9743A",1);s+=R(x+8,b-33,74,3,"#6E4A22");
+    s+=R(x+12,b-30,4,28,"#6E4A22")+R(x+74,b-30,4,28,"#6E4A22");
+    s+=SOL(x+18,b-50,16,11,"url(#metal)",2);
+    s+=R(x+24,b-54,4,5,"#5B686C",1);
+    s+=SOL(x+40,b-46,9,7,"#FBFDFC",1)+R(x+39,b-47,11,2,"#8C9A93");
+    s+=SOL(x+88,b-42,24,22,"#E4EBE6",2);
+    s+=R(x+90,b-38,20,2,"#8C9A93")+R(x+90,b-33,20,2,"#8C9A93")+R(x+90,b-28,14,2,"#8C9A93");
+    s+=SOL(x+92,b-50,16,8,"#D9A021",1);
+    s+='<g transform="translate('+(x+62)+','+(b-2)+')">'+chair(0,0,"#1F5340")+'</g>';
+  }else if(r.t==="office"){
+    s+=desk(x+10,b-6,54);
+    s+=SOL(x+70,b-46,34,46,"#8FA79B",1);
+    s+=R(x+73,b-42,28,10,"#E9F0EC",1)+R(x+73,b-28,28,10,"#E9F0EC",1)+R(x+73,b-14,28,8,"#E9F0EC",1);
+    s+=R(x+82,b-38,5,3,"#79888D")+R(x+82,b-24,5,3,"#79888D");
+    s+=SOL(x+16,NY+16,48,26,"#FBF7EC",2)+R(x+16,NY+16,48,3,"#D9A021");
+    s+=TX(x+40,NY+33,"GRADE",10,"#8A5F14",700,"middle");
+    if(staffAt(i))s+=person(x+50,b-10,{mood:staffAt(i).mood,role:staffAt(i).role,hair:"#6B5A48"});
+  }else if(r.t==="coat"){
+    s+=SOL(x+14,b-46,84,4,"#79888D",1);
+    for(k=0;k<3;k++){
+      var cxk=x+22+k*26;
+      s+='<path d="M'+cxk+','+(b-44)+' l-9,20 l18,0 z" fill="'+(k%2?"#2A6B4F":"#4A5A52")+'"/>';
+      s+=R(cxk-2,b-44,4,4,"#3E4A50");
+    }
+    s+=SOL(x+18,b-22,76,16,"#B9C4C7",2);
+    for(k=0;k<7;k++)s+=R(x+22+k*10,b-20,4,12,"#8FA79B");
+    s+=SOL(x+26,b-6,60,4,"#6E4A22",1);
+    s+=SOL(x+30,b-16,16,6,"#8A5F2E",1)+SOL(x+50,b-16,14,6,"#8A5F2E",1);
+  }else if(r.t==="lounge"){
+    s+='<g transform="translate('+(x+14)+','+(b-2)+')">'+chair(0,0,"#2A6B4F")+'</g>';
+    s+='<g transform="translate('+(x+42)+','+(b-2)+')">'+chair(0,0,"#1F5340")+'</g>';
+    s+='<g transform="translate('+(x+70)+','+(b-2)+')">'+chair(0,0,"#2A6B4F")+'</g>';
+    s+=SOL(x+24,b-24,34,5,"#A9743A",1)+R(x+26,b-19,3,19,"#6E4A22")+R(x+53,b-19,3,19,"#6E4A22");
+    s+=R(x+30,b-27,16,3,"#FBFDFC",1);
+    s+=R(x+8,NY+30,16,4,"#8FA79B",2)+R(x+10,NY+34,2,10,"#5B686C")+R(x+20,NY+34,2,10,"#5B686C");
+  }else{
+    s+='<rect x="'+(x+8)+'" y="'+(NY+16)+'" width="'+(CW-16)+'" height="'+(NH-30)+'" fill="#FBFDFC" opacity=".5" stroke="#B6C9BE" stroke-width="1.6" stroke-dasharray="6 4" rx="3"/>';
+    s+=TX(x+CW/2,NY+NH/2-4,"Open slot",13,"#8C9A93",700,"middle");
+    s+=TX(x+CW/2,NY+NH/2+12,"build here",11,"#A9B7B0",null,"middle");
+  }
+  return s;
+}
+function occupantOf(slot,bed){
+  var p=bayUsed(slot,bed);
+  if(!p)return null;
+  return {hair:p.hair};
+}
+function lampCone(x,y){
+  var s='<g transform="translate('+x+','+y+')">';
+  s+=CAST(-4,0,12,.16);
+  s+='<path d="M-2,0 L0,-40 L4,-40 L4,0 z" fill="#5B686C"/>';
+  s+=SOL(-3,-44,10,6,"url(#metal)",2);
+  s+='<path d="M-34,4 L-4,-40 L10,-40 L32,4 z" fill="url(#cone)"/>';
+  s+='</g>';
+  return s;
+}
+function hatStand(x,y){
+  var s='<g transform="translate('+x+','+y+')">';
+  s+=CAST(-4,0,9,.16);
+  s+=R(-2,-46,3,46,"#6E4A22");
+  s+=SOL(-7,-1,13,4,"#6E4A22",1);
+  s+='<path d="M-2,-44 l-8,4" stroke="#6E4A22" stroke-width="2.4"/>';
+  s+='<path d="M1,-44 l8,4" stroke="#6E4A22" stroke-width="2.4"/>';
+  s+='<ellipse cx="8" cy="-42" rx="9" ry="4" fill="#4A5A52"/><path d="M2,-44 a6,5 0 0 1 12,0z" fill="#38473F"/>';
+  s+='</g>';
+  return s;
+}
+/* state carried by shape and word, never by colour alone */
+function badge(i){
+  var r=S.rooms[i],x=roomX(i),y=(i<3?NY+8:SY+8),st=stateOf(i),d=roomDef(r.t);
+  if(!r.t)return "";
+  var w=st.w.length*6.2+24, f=st.f, tc=st.tc;
+  var s=R(x+8,y,Math.min(w,CW-16),18,f,3)+LIT(x+8,y,Math.min(w,CW-16),18,3);
+  s+='<g transform="translate('+(x+16)+','+(y+9)+')">'+st.icon+'</g>';
+  s+=TX(x+27,y+13,st.label,11,tc,700);
+  s+=TX(x+8,y+34,(d?d.n:"")+" "+(r.door?r.door+"cm door":""),11,"#4A5A52",700);
+  return s;
+}
+function stateOf(i){
+  var r=S.rooms[i],wait=0,occ=0,k;
+  for(k=0;k<S.patients.length;k++){
+    var p=S.patients[k];
+    if(p.room===i&&(p.st==="bay"||p.st==="treat"||p.st==="day"||p.st==="lounge")){occ++;if(p.why&&p.why.indexOf("nobody")>=0)wait=1;}
+  }
+  if(!r.t)return {w:"open",label:"Open slot",f:"none",tc:"#8C9A93",icon:""};
+  if(r.blocked)return {w:"block",label:"Blocked",f:"#2C3A32",tc:"#EFE7D6",
+    icon:'<circle cx="0" cy="0" r="5" fill="none" stroke="#D9A021" stroke-width="2"/><path d="M-3.5,3.5 l7,-7" stroke="#D9A021" stroke-width="2"/>'};
+  if(needsStaff(i))return {w:"wait",label:"Waiting on staff",f:"#D9A021",tc:"#2A1D02",
+    icon:'<path d="M-5,-6 v12" stroke="#2A1D02" stroke-width="2.4"/><path d="M6,-5 a5,5 0 1 0 0,10 v-4 h-4" stroke="#2A1D02" stroke-width="2" fill="none"/>'};
+  if(occ)return {w:"work",label:"Working",f:"#2A6B4F",tc:"#EFF9F3",
+    icon:'<path d="M-5,0 l3.4,4 L6,-5" stroke="#3FCBA3" stroke-width="2.6" fill="none"/>'};
+  return {w:"idle",label:"Empty",f:"#E4EBE6",tc:"#4A5A52",
+    icon:'<rect x="-5" y="-4" width="10" height="8" fill="none" stroke="#7C8F97" stroke-width="1.8"/>'};
+}
+function needsStaff(i){
+  var r=S.rooms[i],d=roomDef(r.t),k;
+  if(!r.t||r.blocked)return 0;
+  if(d&&d.role&&r.staff<0)return 1;
+  for(k=0;k<S.patients.length;k++){
+    var p=S.patients[k];
+    if(p.room===i&&p.st==="bay"&&p.ready>0&&r.staff<0)return 1;
+  }
+  return 0;
+}
+/* ---------------- the corridor and the shell ---------------- */
+function corridorArt(){
+  var s="",b=CY+CH,q,x;
+  s+=CAST(12,CH+CY-2,352,.12);
+  s+=R(12,CY,356,CH,"#E6EFE9");
+  s+=R(12,CY,356,CH,"url(#floorw)");
+  for(x=12+59;x<356;x+=59)s+=R(x,CY+8,1.2,CH-14,"#C3D3CA",null,.7);
+  s+=R(12,CY,356,3,"#F7FAF8",null,.8);
+  s+=R(12,b-4,356,4,"#B6C9BE",null,.5);
+  /* the ward door in the west wall, with a threshold and a hand rail */
+  s+=R(4,CY+18,9,60,"#2A6B4F",2);
+  s+=R(6,CY+22,5,52,"#1F5340",1);
+  s+=R(11,CY+44,4,7,"#D9A021",2);
+  s+=R(2,b-8,14,6,"#8FA79B",2);
+  s+=TX(20,CY+16,"WARD DOOR",11,"#4A5A52",700);
+  /* the admissions counter along the north wall of the corridor */
+  s+=SOL(22,CY+34,52,10,"#A9743A",1);
+  s+=R(22,CY+44,52,3,"#6E4A22");
+  s+=R(26,CY+47,4,20,"#6E4A22")+R(66,CY+47,4,20,"#6E4A22");
+  s+=SOL(30,CY+24,14,9,"url(#metal)",1);
+  s+=SOL(48,CY+22,20,13,"#FBF7EC",1);
+  s+=R(50,CY+25,16,2,"#8C9A93")+R(50,CY+29,12,2,"#8C9A93");
+  s+=person(84,b-8,{mood:"Steady",role:"porter",hair:"#4A3524",arm:0});
+  /* the corridor lamp and its cone */
+  s+=lamp(320,b-16);
+  s+=plant(350,b-4);
+  return s;
+}
+function queueArt(){
+  var q=queueList(),s="",i,max=7,start=104;
+  s+=TX(start,CY+18,"SEEN-IN QUEUE",11,"#4A5A52",700);
+  for(i=0;i<q.length&&i<max;i++){
+    var p=q[i],x=start+6+i*26,y=CY+CH-6-((i%2)?2:0);
+    s+=person(x,y,{mood:p.why&&p.why.indexOf("nobody")>=0?"Frayed":"Steady",role:"",c:"#4A5A52",cf:"#B9C4C7",
+      hair:p.id%2?"#4A3524":"#6B5A48",arm:0});
+    s+=R(x-6,y-6,7,7,"#8C9A93",1,.9);
+    if(p.why&&p.why.indexOf("card")>=0)s+=R(x-5,y-11,8,7,"#D9A021",1);
+  }
+  if(q.length>max)s+=TX(start+6+max*26+6,CY+CH-8,"plus "+(q.length-max)+" waiting",11,"#4A5A52",700);
+  if(!q.length)s+=TX(start+6,CY+CH-14,"nobody is waiting at the door",12,"#7C8F97",null,"start");
+  return s;
+}
+function shell(){
+  var s="",i,x,y;
+  s+='<ellipse cx="196" cy="450" rx="180" ry="9" fill="#14211B" opacity=".16"/>';
+  /* outer walls: cream face, dark edge, shadow outside to the lower right */
+  s+=R(0,4,VW,10,"#CBD9D1",null,.5);
+  s+=SOL(6,6,VW-12,432,"#EFF4F1",6);
+  s+=R(6,6,VW-12,432,"url(#floorw)",6);
+  /* room floors */
+  for(i=0;i<6;i++){
+    x=roomX(i);y=(i<3?NY:SY);
+    s+=R(x+2,y+2,CW-4,NH-4,"#F7FAF8");
+    s+=R(x+2,y+2,CW-4,10,"#FFFFFF",null,.7);
+    s+=R(x+2,y+(i<3?NH-10:2),CW-4,8,"#DCE7E0",null,.9);
+  }
+  /* corridor on top of the shell */
+  s+=corridorArt();
+  for(i=0;i<6;i++){
+    s+=furn(i);
+    /* the door of the room, in its corridor-side wall */
+    var dx=roomX(i)+22,dw=74,dy=(i<3?NY+NH-5:SY-5);
+    s+=R(dx,dy,dw,7,"#C3D3CA");
+    s+=SOL(dx+2,dy+1,dw-4,5,"#2A6B4F",1);
+    s+=R(dx+dw-6,dy+2,3,3,"#D9A021",2);
+    s+=R(roomX(i),dy,22,7,"#F0F5F2")+R(roomX(i)+dw+22,dy,CW-dw-22,7,"#F0F5F2");
+  }
+  s+=queueArt();
+  /* walls over the top, so doors sit inside them */
+  for(i=1;i<3;i++)s+=R(COLX[i],8,3,424,"#C3D3CA",null,1);
+  s+=R(6,NY+NH+2,VW-12,4,"#B6C9BE");
+  s+=R(6,SY-6,VW-12,4,"#B6C9BE");
+  s+=R(6,8,4,424,"#C3D3CA");
+  s+=R(VW-10,8,4,424,"#C3D3CA");
+  for(i=0;i<6;i++){
+    if(S.rooms[i].blocked){
+      var bx=roomX(i),by=(i<3?NY+NH+6:SY-26);
+      s+='<rect x="'+bx+'" y="'+by+'" width="'+CW+'" height="20" fill="none" stroke="#2C3A32" stroke-width="2.4" stroke-dasharray="5 4"/>';
+      s+=R(bx+10,by+4,44,12,"#8FA79B",1)+R(bx+10,by+4,44,3,"#D9A021");
+      s+=TX(bx+60,by+14,"kit is too wide",11,"#EFF9F3",700);
+    }
+    s+=badge(i);
+  }
+  /* the ward name plate, drawn as a sign screwed to the top wall */
+  s+=SOL(14,14,120,22,"#2A6B4F",3);
+  s+=TX(24,29,"BAY FOUR",14,"#EFF9F3",700);
+  return s;
+}
+function setSVG(el,markup){
+  while(el.firstChild)el.removeChild(el.firstChild);
+  var d=new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 374 452">'+markup+'</svg>',"image/svg+xml");
+  var src=d.documentElement,n=[],i;
+  for(i=0;i<src.childNodes.length;i++)n.push(src.childNodes[i]);
+  for(i=0;i<n.length;i++)el.appendChild(n[i]);
+}
+function renderWard(){
+  setSVG(document.getElementById("wardart"),DEFS+shell());
+  renderHot();
+}
+/* the six rooms, the ward door and the corridor, as buttons over the plan */
+function renderHot(){
+  var h=document.getElementById("hot"),i,s="";
+  h.innerHTML="";
+  h.appendChild(hot("room0",COLX[0],NY,CW,NH,0));
+  h.appendChild(hot("room1",COLX[1],NY,CW,NH,1));
+  h.appendChild(hot("room2",COLX[2],NY,CW,NH,2));
+  h.appendChild(hot("room3",COLX[0],SY,CW,SH,3));
+  h.appendChild(hot("room4",COLX[1],SY,CW,SH,4));
+  h.appendChild(hot("room5",COLX[2],SY,CW,SH,5));
+  h.appendChild(hot("door",0,CY-10,66,CH+20,-1));
+  h.appendChild(hot("corr",66,CY-10,VW-66,CH+20,-2));
+}
+function hot(id,x,y,w,h,slot){
+  var b=document.createElement("button");
+  b.id=id;b.className="hotb";
+  b.setAttribute("data-slot",slot);
+  b.setAttribute("data-a",slot>=0?"room":(slot===-1?"door":"corridor"));
+  if(slot>=0)b.setAttribute("data-arg",String(slot));
+  b.style.left=(x/VW*100)+"%";b.style.top=(y/VH*100)+"%";
+  b.style.width=(w/VW*100)+"%";b.style.height=(h/VH*100)+"%";
+  var lbl=slot>=0?(stateOf(slot).label+" "+roomName(S.rooms[slot])):(slot===-1?"The ward door":"The corridor");
+  b.setAttribute("aria-label",lbl);
+  return b;
+}
+function lit(slot){
+  var all=document.querySelectorAll(".hotb"),i,n;
+  for(i=0;i<all.length;i++){
+    n=parseInt(all[i].getAttribute("data-slot"),10);
+    if(slot==="all"||n===slot)all[i].classList.add("lit");else all[i].classList.remove("lit");
+  }
+}
+
+
+/* ============================================================
+   5. THE SIMULATION. The ward runs on acts: one act is four
+   seconds of ward time, and everything the ward does happens on
+   the beat of an act. advance(seconds) drives this with no
+   drawing at all, so a whole visit can be replayed in a moment.
+   ============================================================ */
+var ACTSECONDS=4;
+var MOODLADDER=["Done","Frayed","Flat","Steady","Brisk"];
+var HAIRS=["#4A3524","#6B5A48","#2E3F37","#8A6A3A","#5A4632"];
+var CALLS=[
+ {t:"I have not sat down",role:"nurse",mood:"Flat",
+  p:"{who} has been on her feet since the door opened and wants it known.",
+  a:{l:"Take the tea round yourself",s:"costs the round a moment, {who} steadies"},
+  b:{l:"Ask {who} to carry on",s:"the ward keeps moving, {who} goes flatter"}},
+ {t:"The card does not match the patient",role:"nurse",mood:"",
+  p:"{who} has found a bed whose card names a different invented condition from the patient in it.",
+  a:{l:"Stop and read both cards back",s:"the cards go straight, the round waits"},
+  b:{l:"Treat on the card as written",s:"faster, and the wrong kit gets fitted"}},
+ {t:"The porter will not leave the store",role:"porter",mood:"",
+  p:"{who} has decided the store is his and the bays can wait.",
+  a:{l:"Send him round the bays with you",s:"the porter moves, the kits move"},
+  b:{l:"Leave him to it",s:"one kit stays where it is"}},
+ {t:"The kettle is cold",role:"",mood:"Flat",
+  p:"{who} says the kettle is cold. This is not a joke and it is not really about the kettle.",
+  a:{l:"Walk them to the staff room",s:"off the floor for a moment, worth it"},
+  b:{l:"Ask them to hold on",s:"the floor keeps its pair of hands and loses its mood"}},
+ {t:"Someone has moved the scanner",role:"porter",mood:"",
+  p:"{who} left the new scanner in the corridor. It is 90 centimetres wide. The treatment door is {door}.",
+  a:{l:"Get the door widened today",s:"costs money, ends the blockage"},
+  b:{l:"Leave it in the corridor for now",s:"the corridor stays blocked"}},
+ {t:"A patient has been in the bay since dawn",role:"doctor",mood:"",
+  p:"{who} has a patient who has watched the whole morning go past from one bed.",
+  a:{l:"Take that case between you",s:"the round slows, the bed turns over"},
+  b:{l:"Let the order stand",s:"the order is right and the patient waits"}},
+ {t:"Two patients want the same bed",role:"senior nurse",mood:"",
+  p:"{who} has two patients and one bed and wants you to decide which way round.",
+  a:{l:"Set the queue order by hand",s:"the ward learns the order from you"},
+  b:{l:"Let triage hold the order",s:"triage is doing its job, slowly"}},
+ {t:"I am not doing that room",role:"",mood:"Frayed",
+  p:"{who} has refused a room outright and is standing in the corridor.",
+  a:{l:"Take the room with them",s:"the room gets done, the round waits"},
+  b:{l:"Move them somewhere easier",s:"one room stays uncovered"}}
+];
+var s_=null;
+function actNow(){return S.act;}
+function callText(s){return s.p.replace(/\{who\}/g,whoOf(S.pending.staff)).replace(/\{door\}/g,S.doorW+"cm");}
+function whoOf(id){var st=staffById(id);return st?(st.first+" "+st.last):"someone";}
+function shortWho(id){var st=staffById(id);return st?st.first:"someone";}
+function peekCall(){return S.pending;}
+
+/* ---- arrivals, the door, the queue ---- */
+function doorStaffed(){return !!staffAt(-1);}
+function arrivals(){
+  if(S.acts%3)return;
+  if(queueList().length>=8)return;
+  var p=newPatient();
+  p.ord=(S._ord=(S._ord||0)+1);
+  p.card0=p.card;
+  p.st="queue";
+  p.why=doorStaffed()?"":"door";
+  S.patients.push(p);
+  if(S.acts<6)S.note="A patient has come through the ward door.";
+}
+function triageSlot(){
+  var i;
+  for(i=0;i<6;i++)if(S.rooms[i].t==="triage"&&!S.rooms[i].blocked&&S.rooms[i].staff>=0)return i;
+  return -1;
+}
+function freeBay(){
+  var beds=bayBeds(),i;
+  for(i=0;i<beds.length;i++)if(!bayUsed(beds[i].slot,beds[i].bed))return beds[i];
+  return null;
+}
+function moveQueue(){
+  var t=triageSlot();
+  if(t<0){S.triageHeld=0;return;}
+  S.triageHeld=(S.triageHeld||0)+1;
+  if(S.triageHeld<2)return;
+  S.triageHeld=0;
+  var q=queueList(),b=freeBay();
+  if(!q.length||!b)return;
+  var p=q[0];
+  p.st="bay";p.room=b.slot;p.bed=b.bed;p.wait=0;p.why="";p.ready=0;
+  S.seen++;
+}
+function bayWait(slot){
+  var t=triageSlot();
+  if(t>=0&&Math.abs(slot-t)===1)return 1;
+  return journeyActs(slot)>1?3:2;
+}
+function bayStep(){
+  var i,p,beds=bayBeds(),b;
+  for(i=0;i<S.patients.length;i++){
+    p=S.patients[i];
+    if(p.st!=="bay")continue;
+    p.wait++;
+    b=null;
+    for(var k=0;k<beds.length;k++)if(beds[k].slot===p.room&&beds[k].bed===p.bed)b=beds[k];
+    if(p.wait>=bayWait(p.room)&&!p.ready){p.ready=1;p.why="";}
+    if(!p.ready&&p.wait>=bayWait(p.room)+4&&!p.why)p.why="seen";
+  }
+  /* the day room takes the ones who can be moved on, and gives mood back */
+  for(i=0;i<S.patients.length;i++){
+    p=S.patients[i];
+    if(p.st==="bay"&&p.ready&&p.why==="seen"&&roomsOf("day").length&&rnd()<0.25){
+      p.st="day";p.room=roomsOf("day")[0];p.wait=0;p.why="";
+    }
+  }
+}
+function treatSlotFree(){
+  var i;
+  for(i=0;i<6;i++)if(S.rooms[i].t==="treat"&&!S.rooms[i].blocked&&!S.rooms[i].busy&&S.rooms[i].staff>=0)return i;
+  return -1;
+}
+function treatStep(){
+  var ts=treatSlotFree(),i,p,best=null;
+  if(ts>=0){
+    for(i=0;i<S.patients.length;i++){
+      p=S.patients[i];
+      if(p.st!=="bay"||!p.ready)continue;
+      if(!best||p.wait>best.wait)best=p;
+    }
+    if(best){
+      var r=S.rooms[ts];
+      best.st="treat";best.room=ts;best.bed=1;best.wait=0;best.pay0=best.pay;
+      r.busy=best.id;r.busyLeft=3;
+      S.note=shortName(best)+" is in the treatment room.";
+    }
+  }
+  for(i=0;i<6;i++){
+    var rr=S.rooms[i];
+    if(rr.t!=="treat"||!rr.busy)continue;
+    rr.busyLeft--;
+    if(rr.busyLeft>0)continue;
+    var q=patientById(rr.busy);
+    rr.busy=0;rr.busyLeft=0;
+    if(!q)continue;
+    finishCase(q);
+  }
+}
+function finishCase(p){
+  var good=(p.card===p.card0),pay=p.pay0||p.pay,note;
+  if(good&&p.cond==="Damp Hat"&&roomsOf("coat").length)pay=Math.round(pay*1.2);
+  if(!good){
+    pay=Math.round(pay*0.5);
+    S.wrongKit++;
+    note=shortName(p)+" was treated on the wrong card and the ward has written it up";
+  }else{
+    S.treated++;
+    note=shortName(p)+" went home after "+p.cond;
+  }
+  S.cash+=pay;
+  S.lastPay=pay;
+  S.note=note;
+  p.st=roomsOf("lounge").length?"lounge":"discharge";
+  p.room=roomsOf("lounge").length?roomsOf("lounge")[0]:-1;p.wait=0;p.treated=1;
+  p.why="";
+}
+function shortName(p){return p.first+" "+p.last.slice(0,1)+".";}
+function dischargeStep(){
+  var i,p;
+  for(i=S.patients.length-1;i>=0;i--){
+    p=S.patients[i];
+    if(p.st==="lounge"){p.wait++;if(p.wait>=3){p.st="home";S.done++;}}
+    else if(p.st==="discharge"){p.wait++;if(p.wait>=2){p.st="home";S.done++;}}
+  }
+  for(i=S.patients.length-1;i>=0;i--)if(S.patients[i].st==="home")S.patients.splice(i,1);
+}
+/* ---- moods, traits and rest ---- */
+function moodUp(st){
+  var i=MOODLADDER.indexOf(st.mood);
+  if(i<MOODLADDER.length-1){st.mood=MOODLADDER[i+1];st.moodN=0;}
+}
+function moodDown(st){
+  var i=MOODLADDER.indexOf(st.mood);
+  if(i>0){st.mood=MOODLADDER[i-1];st.moodN=0;}
+}
+function bumpTrait(st,name,to){
+  var i;
+  for(i=0;i<st.traits.length;i++){
+    if(st.traits[i].n===name){st.traits[i].c++;return;}
+  }
+  for(i=0;i<st.traits.length;i++){
+    if(st.traits[i].from==="at hire"){st.traits[i]={n:name,from:"from the evidence",c:1};return;}
+  }
+}
+function driftSlot(){
+  var order=["treat","triage","bay"],i,k;
+  for(k=0;k<order.length;k++)for(i=0;i<6;i++){
+    if(S.rooms[i].t===order[k]&&!S.rooms[i].blocked&&!staffAt(i))return i;
+  }
+  return -1;
+}
+function moodStep(){
+  var i,st,day=roomsOf("day"),resting;
+  for(i=0;i<S.staff.length;i++){
+    st=S.staff[i];
+    st.moodN++;
+    resting=(st.at>=0&&(S.rooms[st.at].t==="day"||S.rooms[st.at].t==="staff"));
+    if(st.at>=-1&&!resting){
+      st.tired++;
+      if(st.tired>7&&st.mood!=="Brisk"){moodDown(st);st.tired=0;
+        st.last=st.mood==="Done"?"has had enough of this room":st.last;}
+      if(st.mood==="Frayed"&&rnd()<0.08){st.mistakes++;bumpTrait(st,"hopeless with numbers");}
+    }else if(resting){
+      st.tired=Math.max(0,st.tired-2);
+      if(st.tired===0&&st.mood!=="Steady"){moodUp(st);st.last="came back round in the "+S.rooms[st.at].t+" room";}
+    }else{
+      st.tired=Math.max(0,st.tired-1);
+      if(st.tired===0&&st.mood!=="Steady"&&st.mood!=="Brisk")moodUp(st);
+      /* a ward with nobody on the floor pulls its own people back in */
+      if(st.mood==="Steady"&&st.at===-2&&S.acts%4===0&&S.onFloor<2){
+        var want=driftSlot();
+        if(want>=0){st.at=want;st.last="drifted back to the "+roomDef(S.rooms[want].t).n.toLowerCase();syncRooms();}
+      }
+    }
+    if(st.mood==="Done"&&st.at>=-1&&!resting){
+      st.at=-2;st.last="stopped, put the charts down and came off the floor";
+      if(day.length){st.at=day[0];st.last="had enough of the room and went to the day room";}
+    }
+  }
+  if(S.acts%9===0){
+    for(i=0;i<S.staff.length;i++){
+      st=S.staff[i];
+      if(st.at>=0&&S.load>70&&st.mood==="Steady"){moodDown(st);st.last="went flat with a full ward";}
+    }
+  }
+}
+function restStaff(id){
+  var st=staffById(id),s=roomsOf("staff");
+  if(!st||!s.length)return 0;
+  st.at=s[0];st.tired=0;st.last="took a break in the staff room";
+  S.note=st.first+" has gone to the staff room.";
+  return 1;
+}
+/* ---- the load, and what it does ---- */
+function loadCalc(){
+  var q=queueList().length,occ=0,bl=0,i;
+  for(i=0;i<S.patients.length;i++)if(S.patients[i].st==="bay"||S.patients[i].st==="treat")occ++;
+  for(i=0;i<6;i++)if(S.rooms[i].blocked)bl++;
+  S.load=clamp(Math.round(q*7+occ*6+bl*9),0,100);
+  if(S.load>S.peak)S.peak=S.load;
+}
+function doorW(){var i,r=roomsOf("treat");if(!r.length)return 70;return S.rooms[r[0]].door;}
+/* ---- the events ---- */
+function raiseCall(){
+  if(S.pending)return 0;
+  var floor=[],i,st;
+  for(i=0;i<S.staff.length;i++){st=S.staff[i];if(st.at>=-1&&st.mood!=="Brisk")floor.push(st);}
+  if(!floor.length)return 0;
+  var low=null;
+  for(i=0;i<floor.length;i++){
+    if(floor[i].mood==="Frayed"||floor[i].mood==="Done"){low=floor[i];break;}
+    if(floor[i].mood==="Flat"&&!low)low=floor[i];
+  }
+  st=low||floor[ri(0,floor.length-1)];
+  var pool=[],c;
+  for(i=0;i<CALLS.length;i++){
+    c=CALLS[i];
+    if(c.role&&c.role!==st.role)continue;
+    if(c.t==="The card does not match the patient"&&!S.swapPair)continue;
+    if(c.t==="Someone has moved the scanner"&&!S.snag)continue;
+    if(c.t==="Two patients want the same bed"&&queueList().length<2)continue;
+    pool.push(c);
+  }
+  if(!pool.length)pool=CALLS.slice(0,3);
+  S.pending={staff:st.id,i:Math.floor(rnd()*pool.length),c:pool[Math.floor(rnd()*pool.length)],raised:S.acts};
+  S.note=st.first+" has raised something with you.";
+  return 1;
+}
+function answerCall(choice){
+  var P=S.pending;
+  if(!P)return 0;
+  var st=staffById(P.staff),c=P.c,a=choice?c.b:c.a;
+  S.calls=(S.calls||0)+1;
+  if(choice===0){
+    moodUp(st);st.tired=0;bumpTrait(st,"kind");
+    S.late=(S.late||0)+1;
+    if(c.t==="The card does not match the patient"&&S.swapPair){fixSwap();S.cardCall=1;}
+    if(c.t==="Someone has moved the scanner"&&S.snag)widenKit(1);
+    if(c.t==="Two patients want the same bed"&&queueList().length>1){S.moved++;sortQueue();}
+    if(c.t==="A patient has been in the bay since dawn"){
+      var q=null,i;
+      for(i=0;i<S.patients.length;i++)if(S.patients[i].st==="bay"){q=S.patients[i];break;}
+      if(q)q.wait+=2;
+    }
+    st.last="worked it through with you: "+c.t.toLowerCase();
+  }else{
+    moodDown(st);bumpTrait(st,"unhurried");
+    S.deferred++;
+    if(c.t==="The card does not match the patient"){S.cardCall=2;}
+    if(c.t==="Someone has moved the scanner"){S.cardCall=2;}
+    st.last="was told to carry on: "+c.t.toLowerCase();
+  }
+  S.pending=null;
+  S.note=shortWho(st.id)+": "+a.l+".";
+  return 1;
+}
+function sortQueue(){
+  var q=queueList(),i;
+  for(i=0;i<q.length;i++)q[i].ord=i;
+}
+function swapCards(){
+  var bay=[],i,p;
+  for(i=0;i<S.patients.length;i++){
+    p=S.patients[i];
+    if(p.st==="bay"&&p.card===p.card0)bay.push(p);
+  }
+  if(bay.length<2)return 0;
+  var a=bay[0],b=bay[1],t;
+  t=a.card;a.card=b.card;b.card=t;
+  t=a.cardCond;a.cardCond=b.cardCond;b.cardCond=t;
+  S.swapPair=[a.id,b.id];
+  S.misplace++;
+  S.note="Two cards have been left in the wrong beds.";
+  return 1;
+}
+function fixSwap(){
+  var pair=S.swapPair;
+  if(!pair)return 0;
+  var a=patientById(pair[0]),b=patientById(pair[1]),t;
+  if(a&&b){
+    t=a.card;a.card=b.card;b.card=t;
+    t=a.cardCond;a.cardCond=b.cardCond;b.cardCond=t;
+    var st=staffById(S.pending?S.pending.staff:0);
+  }
+  S.swapPair=null;S.fixedSwap=(S.fixedSwap||0)+1;
+  S.note="The cards are back in the right beds.";
+  return 1;
+}
+function snagKit(){
+  var r=roomsOf("treat"),i;
+  if(!r.length)return 0;
+  var slot=r[0],room=S.rooms[slot];
+  if(room.door>=90)return 0;
+  room.blocked=1;room.fitted=0;room.kitIn="the scanner, 90cm";
+  S.snag=1;S.blockedTiles=1;
+  S.note="The new scanner has arrived. It does not go through a "+room.door+"cm door.";
+  return 1;
+}
+function widenKit(quiet){
+  var r=roomsOf("treat"),i;
+  if(!r.length)return 0;
+  var room=S.rooms[r[0]];
+  room.door=110;room.blocked=0;room.fitted=1;room.kitIn="";
+  S.snagFixed=(S.snagFixed||0)+1;S.blockedTiles=0;
+  if(!quiet)S.note="The treatment room door is 110cm and the scanner is in.";
+  return 1;
+}
+function visitorStep(){
+  if(S.visitor||S.visited)return 0;
+  if(S.load<70)return 0;
+  S.visitor={raised:S.acts,v:"consultant"};
+  S.note="A consultant is standing at the ward door.";
+  return 1;
+}
+function handleVisitor(choice){
+  if(!S.visitor)return 0;
+  var i,st;
+  if(choice==="consultant"){
+    S.visited=2;S.late=(S.late||0)+1;
+    for(i=0;i<S.staff.length;i++){st=S.staff[i];if(st.at>=-1)moodUp(st);}
+    S.note="You walked the round with the consultant. It took the whole middle of the day.";
+  }else{
+    S.visited=1;
+    for(i=0;i<S.staff.length;i++){st=S.staff[i];if(st.at===0)moodDown(st);}
+    S.note="The senior nurse took the consultant round. She was not pleased about it.";
+  }
+  S.visitor=null;
+  return 1;
+}
+/* ---- the twelve acts of a visit ---- */
+function stepDone(n){
+  switch(n){
+    case 1:return S.seen>0?1:0;
+    case 2:return S.looked?1:0;
+    case 3:return (S.calls||0)>=1?1:0;
+    case 4:return S.readAll?1:0;
+    case 5:return (S.moved||0)>=1||S.leftOrder?1:0;
+    case 6:return (S.calls||0)>=2||S.deferJune?1:0;
+    case 7:return !!S.cardCall?1:0;
+    case 8:return !!S.handover?1:0;
+    case 9:return !!S.snagFixed||!!S.snagLeft?1:0;
+    case 10:return !!S.visited?1:0;
+    case 11:return (S.acts-S.act10At)>=5?1:0;
+    case 12:return !!S.signed?1:0;
+  }
+  return 0;
+}
+var STEPTXT=[
+ ["The door","Someone has come through the ward door. Get them seen in, or the queue starts in the corridor."],
+ ["The look","Walk the round. Six rooms, and the ward tells you what it is short of."],
+ ["The first call","A member of staff has stopped and is waiting to be answered."],
+ ["The round","Read every occupied room. The cards, the beds and the moods."],
+ ["The queue","Triage sorts the queue. You can set it by hand, or leave triage to it."],
+ ["The interruption","The ward will raise a second problem. Answering costs the round time, deferring costs the mood."],
+ ["The misplacement","Two cards have gone to the wrong beds. Fix them, or treat on the card."],
+ ["The hand-over","Pick the one thing you are going to run by hand for the rest of the visit."],
+ ["The snag","The new kit is in the corridor and it does not go through the door."],
+ ["The visitor","A consultant is at the door and the ward is full."],
+ ["The settling","Nothing to do but watch the ward settle. It will tell you if it needs you."],
+ ["The sign-off","Write the visit off. The grade goes in the register either way."]
+];
+function stepNo(){
+  var n=1,i;
+  for(i=1;i<=12;i++){if(!stepDone(i)){n=i;break;}n=13;}
+  return Math.min(n,12);
+}
+function visitStep(){
+  var n=stepNo();
+  S.act=n;
+  if(n!==S.actWas){
+    S.actWas=n;
+    if(n===6&&!S.sixAt)S.sixAt=S.acts;
+    if(n===11&&!S.act10At)S.act10At=S.acts;
+    if(n===6&&S.acts-S.sixAt>8&&!stepDone(6))S.deferJune=1;
+  }
+  /* events fire on the ward's own clock, not the player's */
+  var freeHand=0,i;
+  for(i=0;i<S.staff.length;i++)if(S.staff[i].at>=-1)freeHand=1;
+  if(!S.pending&&freeHand&&S.acts-(S.lastCall||0)>=(S.calls?7:2)){
+    if(raiseCall()){S.lastCall=S.acts;S.modalOff=0;}
+  }
+  if(S.acts===11&&!S.misplace)swapCards();
+  if(S.acts===17&&roomsOf("treat").length&&!S.snag)snagKit();
+  if(S.acts>=6)visitorStep();
+}
+function peakLoad(){return S.peak||S.load;}
+/* ---- grading ---- */
+function gradeNow(){
+  var g=46,i,st,frayed=0,blocked=0;
+  for(i=0;i<6;i++)if(S.rooms[i].blocked)blocked++;
+  for(i=0;i<S.staff.length;i++){
+    st=S.staff[i];
+    if(st.mood==="Frayed"||st.mood==="Done")frayed++;
+  }
+  g+=S.treated*8;
+  g-=S.wrongKit*11;
+  g-=S.deferred*5;
+  g-=blocked*6;
+  g-=frayed*4;
+  g+=S.fixedSwap?7:0;
+  g+=S.visited===2?6:0;
+  g+=S.handover==="mood"?(frayed?0:5):0;
+  g+=S.handover==="queue"?(S.deferred?0:4):0;
+  g+=S.handover==="kit"?(blocked?0:4):0;
+  g-=peakLoad()>85?4:0;
+  return clamp(Math.round(g),0,100);
+}
+function signOff(){
+  if(S.signed)return 0;
+  var g=gradeNow(),i,blocked=0;
+  for(i=0;i<6;i++)if(S.rooms[i].blocked)blocked++;
+  S.grade=g;S.graded=(S.graded||0)+1;S.signed=1;
+  S.peak=S.peak?S.peak:S.load;
+  S.register.push({day:S.day,visit:S.visit,grade:g,treated:S.treated,wrongKit:S.wrongKit,
+    deferred:S.deferred,blocked:blocked,note:S.note||"",away:0});
+  if(S.register.length>40)S.register.shift();
+  var sum=0,n=0;
+  for(i=0;i<S.register.length;i++){sum+=S.register[i].grade;n++;}
+  S.standing=n?Math.round(sum/n):g;
+  standingUnlock();
+  S.note="Visit signed off: grade "+g+".";
+  S.act=12;
+  save();
+  return 1;
+}
+function standingUnlock(){
+  var i;
+  if(S.standing>=62&&S.register.length>=1&&S.unlocks.indexOf("five-ward")<0)S.unlocks.push("five-ward");
+  if(S.standing>=74&&S.register.length>=3&&S.unlocks.indexOf("the-coat-room")<0)S.unlocks.push("the-coat-room");
+}
+function nextVisit(){
+  var i,p;
+  S.visit++;S.day++;
+  S.acts=0;S.clock=0;S.pending=null;S.visitor=null;S.handover="";S.signed=0;
+  S.treated=0;S.wrongKit=0;S.deferred=0;S.seen=0;S.misplace=0;S.snag=0;S.snagFixed=0;
+  S.swapPair=null;S.cardCall=0;S.calls=0;S.lastCall=0;S.looked=0;S.readAll=0;S.moved=0;S.leftOrder=0;
+  S.deferJune=0;S.visited=0;S.act10At=0;S.sixAt=0;S.peak=0;S.done=0;S.actWas=0;S.act=1;
+  for(i=S.patients.length-1;i>=0;i--){p=S.patients[i];if(p.st!=="bay"&&p.st!=="treat"&&p.st!=="lounge"&&p.st!=="day")S.patients.splice(i,1);}
+  for(i=0;i<6;i++){S.rooms[i].busy=0;S.rooms[i].busyLeft=0;}
+  save();
+  return 1;
+}
+/* ---- the absence tick, which pays money and writes the report ---- */
+function awayTick(hours){
+  if(hours<0.5)return 0;
+  var shifts=Math.min(6,Math.floor(hours/8)),pay=0,i,st,lines=[],kind;
+  if(shifts<1)shifts=1;
+  pay=shifts*Math.round(90+S.standing*1.7);
+  S.cash+=pay;
+  S.awayShifts=(S.awayShifts||0)+shifts;
+  for(i=0;i<S.staff.length;i++){
+    st=S.staff[i];
+    if(rnd()<0.5)moodUp(st);else if(rnd()<0.4)moodDown(st);
+    st.at=-1;st.tired=0;
+  }
+  lines.push("You were away for "+shifts+(shifts===1?" shift.":" shifts."));
+  lines.push("The ward carried on and paid in "+money(pay)+".");
+  for(i=0;i<3;i++){
+    st=S.staff[Math.floor(rnd()*S.staff.length)];
+    kind=st.mood==="Steady"||st.mood==="Brisk"?"good":(st.mood==="Flat"?"flat":"bad");
+    var pool=[],k;
+    for(k=0;k<REPORTS.length;k++)if(REPORTS[k].t===kind)pool=REPORTS[k].l;
+    var line=pool[Math.floor(rnd()*pool.length)];
+    lines.push(line.replace(/\{who\}/g,st.first).replace(/\{n\}/g,String(ri(2,9))).replace(/\{room\}/g,"the bays"));
+    if(rnd()<0.4)bumpTrait(st,st.mood==="Steady"?"thorough":"unhurried");
+  }
+  S.register.push({day:S.day,visit:S.visit,grade:S.standing,treated:0,wrongKit:0,deferred:0,blocked:0,
+    note:shifts+" shift"+(shifts===1?"":"s")+" away, "+money(pay)+" paid in",away:shifts});
+  if(S.register.length>40)S.register.shift();
+  S.report=lines;
+  S.away=0;
+  S.note="The ward has carried on without you.";
+  save();
+  return 1;
+}
+/* ---- the tick ---- */
+function tick(dt){
+  S.clock+=dt/ACTSECONDS;
+  var guard=0;
+  while(S.clock>=1&&guard++<50){
+    S.clock-=1;
+    wardAct();
+  }
+}
+function wardAct(){
+  S.acts++;
+  arrivals();
+  moveQueue();
+  bayStep();
+  treatStep();
+  dischargeStep();
+  syncRooms();
+  moodStep();
+  syncRooms();
+  loadCalc();
+  visitStep();
+  if(!S.norender&&S.acts%2===0)save();
+}
+function walkRound(){
+  var i,any=0;
+  for(i=0;i<6;i++){
+    if(S.rooms[i].t&&(stateOf(i).w==="work"||stateOf(i).w==="wait"))any=1;
+  }
+  S.looked=1;
+  if(any){
+    S.readAll=1;
+    S.note="Round walked. Every occupied room has been read.";
+  }else S.note="Round walked. The ward is quiet.";
+  return 1;
+}
+
+
+/* ============================================================
+   6. THE PICTURE ON TOP. Strip, act band, bar, sheets, modal.
+   Every panel here has a way back on it: a close box in the
+   header, and a named button at the foot that returns to the ward.
+   ============================================================ */
+function el(id){return document.getElementById(id);}
+function headHTML(t,sub,x){
+  return '<div class="hd"><h2>'+t+'</h2>'+(sub?'<span class="sub">'+sub+'</span>':'')+
+   '<button class="x" data-a="close" aria-label="Close and go back to the ward">'+XICON+'</button></div>';
+}
+var XICON='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" fill="none"/></svg>';
+function footBtn(label,a){return '<button class="wide" data-a="'+(a||"close")+'">'+label+'</button>';}
+function renderStrip(){
+  var st=S.strip,v="";
+  el("s-cash").textContent=money(S.cash);
+  el("s-queue").textContent=String(queueList().length);
+  if(st==="load"){el("s-thirdk").textContent="Load";v=String(S.load);}
+  else if(st==="grade"){el("s-thirdk").textContent="Grade";v=(S.gl||S.standing||0)+"";}
+  else if(st==="staff"){el("s-thirdk").textContent="On floor";var n=0,i;
+    for(i=0;i<S.staff.length;i++)if(S.staff[i].at>=-1)n++;v=String(n);}
+  if(st==="grade"){var g=S.signed?S.grade:S.standing;v=String(g);}
+  el("s-third").textContent=v;
+  el("s-third").className="num"+(S.load>70&&st==="load"?" gilt":"");
+  el("s-place").textContent="Bay Four";
+  el("s-day").textContent="Day "+S.day+"  visit "+S.visit;
+  el("s-grade").textContent="Standing "+(S.register.length?S.standing:"new");
+  var f=el("s-loadfill");
+  f.style.transform="scaleX("+(S.load/100)+")";
+  el("s-loadwrap").className="load"+(S.load>70?" hot":"");
+  el("s-loadlab").textContent="LOAD "+S.load;
+}
+function mainLabel(){
+  if(S.signed)return "Carry on to the next visit";
+  if(S.result)return "Carry on to the next visit";
+  if(S.act>=11)return "Sign this visit off";
+  if(S.pending)return "Answer "+shortWho(S.pending.staff);
+  return "Walk the round";
+}
+function renderPrompt(){
+  el("p-act").textContent="Act "+S.act+" of 12";
+  el("p-title").textContent=STEPTXT[S.act-1][0];
+  var line=STEPTXT[S.act-1][1];
+  el("p-line").textContent=S.note?S.note:line;
+  el("p-line").className=S.note?"":"";
+}
+function renderBar(){
+  var b=el("b-main"),l=mainLabel();
+  b.textContent=l;
+  b.className="dsp";
+  b.setAttribute("data-a",(S.signed||S.resultHTML)?"nextVisit":(S.act>=11?"signOff":(S.pending&&!S.modalOff?"opencall":"walk")));
+}
+function render(){
+  renderStrip();renderPrompt();renderBar();renderWard();renderSheet();renderCallBox();
+  planFit();
+}
+/* ---------------- the call modal ---------------- */
+function renderCallBox(){
+  var m=el("md-call"),box=el("md-body");
+  if(!S.pending||S.modalOff){m.className="modal";box.innerHTML="";return;}
+  var P=S.pending,st=staffById(P.staff);
+  box.innerHTML='<div class="who">'+figIcon(st)+'<div><h2>'+esc(P.c.t)+'</h2>'+
+    '<div class="sub">'+esc(whoOf(P.staff))+' · '+esc(st?st.role:"")+' · '+esc(st?st.mood:"")+'</div></div></div>'+
+    '<p>'+esc(callText(P.c))+'</p>'+
+    '<button class="gilt" data-a="answer" data-arg="0">'+esc(P.c.a.l)+'<span>'+esc(P.c.a.s.replace(/\{who\}/g,shortWho(P.staff)))+'</span></button>'+
+    '<button data-a="answer" data-arg="1">'+esc(P.c.b.l)+'<span>'+esc(P.c.b.s.replace(/\{who\}/g,shortWho(P.staff)))+'</span></button>'+
+    '<button data-a="calllater">Not now, keep it on the list<span>the call stays open and the bar keeps the way back to it</span></button>';
+  m.className="modal on";
+}
+function figIcon(st){
+  if(!st)return personIcon("#2A6B4F","#3FCBA3");
+  return personIcon("#2A6B4F","#3FCBA3");
+}
+function personIcon(c,f){
+  return '<svg viewBox="0 0 48 48"><ellipse cx="26" cy="45" rx="15" ry="3" fill="#14211B" opacity=".15"/>'+
+   '<rect x="15" y="22" width="4" height="13" fill="#2E3F37"/><rect x="29" y="22" width="4" height="13" fill="#2E3F37"/>'+
+   '<rect x="12" y="16" width="25" height="20" rx="5" fill="'+c+'"/><rect x="12" y="16" width="25" height="5" rx="2" fill="'+f+'" opacity=".7"/>'+
+   '<circle cx="24" cy="10" r="7.4" fill="#EFD9BC"/><path d="M16.6,10 a7.4,7 0 0 1 14.8,0z" fill="#4A3524"/></svg>';
+}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+/* ---------------- the sheets ---------------- */
+var SHEETS=["sh-room","sh-patient","sh-build","sh-staff","sh-report","sh-choice","sh-chain"];
+function openSheet(id,w){
+  closeSheets();
+  S.sheet=id;S.with=w||{};
+  el(id).classList.add("on");
+  el("veil").className="on";
+  renderSheet();
+}
+function closeSheets(){
+  var i;
+  for(i=0;i<SHEETS.length;i++)el(SHEETS[i]).className="sheet";
+  el("veil").className="";
+  S.sheet="";
+}
+function renderSheet(){
+  if(!S.sheet)return;
+  var body=el(S.sheet).querySelector(".bd");
+  if(!body)return;
+  var h="";
+  if(S.sheet==="sh-room")h=roomHTML(S.with.slot);
+  else if(S.sheet==="sh-patient")h=patientHTML(S.with.id);
+  else if(S.sheet==="sh-build")h=buildHTML();
+  else if(S.sheet==="sh-staff")h=staffHTML();
+  else if(S.sheet==="sh-report")h=S.resultHTML?resultHTML():reportHTML();
+  else if(S.sheet==="sh-choice")h=S.with.kind==="visitor"?visitorHTML():handoverHTML();
+  else if(S.sheet==="sh-chain")h=chainHTML();
+  var hd=el(S.sheet).querySelector(".hd");
+  if(hd)hd.outerHTML=h.head;
+  var bd=el(S.sheet).querySelector(".bd");
+  bd.innerHTML=h.body+footBtn(h.foot||"Back to the ward",h.footAct);
+}
+function wrap(head,body,foot,footAct){return {head:head,body:body,foot:foot,footAct:footAct};}
+function filesHTML(){
+  return '<div class="rowline"><button class="alt" data-a="chain">Read the register</button></div>';
+}
+function roomHTML(slot){
+  if(slot===-1)return doorHTML();
+  if(slot===-2)return corrHTML();
+  var r=S.rooms[slot],st=stateOf(slot),d=roomDef(r.t),h="",i,p;
+  var head=headHTML(roomName(r)+" · slot "+(slot+1),(slot<3?"north side":"south side"));
+  if(!r.t){
+    h+='<div class="card want"><h3>Open slot</h3><p>Nothing is built here. The build sheet lists what the ward can put in it.</p>'+
+      '<button data-a="buildsheet">Open the build sheet</button></div>';
+    return wrap(head,h,"Back to the ward");
+  }
+  var tag=st.w==="work"?"ok":(st.w==="wait"||st.w==="block"?"need":"");
+  h+='<div class="card'+(tag==="need"?" want":"")+'"><h3>'+esc(d.n)+'</h3><p>'+esc(d.does)+'</p>'+
+    '<span class="tag '+tag+'">'+esc(st.label)+'</span>'+
+    '<p>Door '+r.door+'cm'+(r.kit?' · its kit needs '+r.kit+'cm':'')+(r.blocked?' · '+esc(r.kitIn||"kit")+' is in the corridor':'')+'</p></div>';
+  var who=staffAt(slot);
+  if(who){
+    h+='<div class="card"><div class="r1"><b>'+esc(who.first+" "+who.last)+'</b><span class="pill'+(who.mood==="Steady"?" on":(who.mood==="Brisk"?" gilt":""))+'">'+esc(who.mood)+'</span></div>'+
+      '<p>'+esc(MOODS[who.mood].eff)+' in this room.</p>'+
+      '<button class="alt" data-a="rest" data-arg="'+who.id+'">Send '+esc(who.first)+' to the staff room</button>'+
+      '<button class="alt" data-a="off" data-arg="'+who.id+'">Take '+esc(who.first)+' off the floor</button></div>';
+  }else if(d.role&&!r.blocked){
+    var free=freeStaff();
+    h+='<div class="card want"><h3>This room needs a pair of hands</h3><p>It will wait until somebody is posted to it. '+esc(d.role)+' work.</p>';
+    for(i=0;i<free.length;i++)
+      h+='<button data-a="post" data-arg="'+free[i].id+'" data-arg2="'+slot+'">Post '+esc(free[i].first)+' to the '+esc(d.n)+'</button>';
+    if(!free.length)h+='<p>Nobody is free. Take somebody off another room or send them from the staff room.</p>';
+    h+='</div>';
+  }
+  if(r.t==="bay"){
+    h+='<div class="card"><h3>The beds</h3>';
+    for(i=0;i<2;i++){
+      p=bayUsed(slot,i+1);
+      if(p)h+='<button class="alt" data-a="patient" data-arg="'+p.id+'">Bed '+(i+1)+': '+esc(shortName(p))+' · '+esc(p.cond)+(p.card!==p.card0?" · card in the wrong bed":"")+'</button>';
+      else h+='<p>Bed '+(i+1)+' is made up and empty.</p>';
+    }
+    h+='</div>';
+  }
+  if(r.blocked){
+    h+='<div class="card want"><h3>The door is the problem</h3><p>'+esc(r.kitIn||"The kit")+' is 90cm wide and this door is '+r.door+'cm. The room cannot work until one of them moves.</p>'+
+      '<button class="gilt" data-a="widen" data-arg="'+slot+'">Widen this door to 110cm for '+money(450)+'</button>'+
+      '<button class="alt" data-a="store" data-arg="'+slot+'">Send the kit back to the store for '+money(290)+'</button></div>';
+  }
+  if(r.t==="treat"&&r.busy){
+    var q=patientById(r.busy);
+    if(q)h+='<div class="card"><h3>In the room now</h3><p>'+esc(shortName(q))+' · '+esc(q.cond)+' · '+r.busyLeft+' acts of treatment left.</p></div>';
+  }
+  h+='<div class="card"><h3>Slot '+(slot+1)+'</h3><p>'+journeyActs(slot)+' act from the ward door. Distance is what the queue pays for.</p>'+
+    '<button class="alt" data-a="demolish" data-arg="'+slot+'">'+(S.confirm===slot?"Confirm: clear slot "+(slot+1)+" for "+money(Math.round(d.cost*0.8)):"Clear this room for "+money(Math.round(d.cost*0.8)))+'</button></div>';
+  return wrap(head,h,"Back to the ward");
+}
+function doorHTML(){
+  var q=queueList(),i,h="",head=headHTML("The ward door","the queue starts here");
+  h+='<div class="card'+(doorStaffed()?"":" want")+'"><h3>'+(doorStaffed()?"Somebody is on the door":"Nobody is on the door")+'</h3>'+
+    '<p>'+(doorStaffed()?"Patients are met as they come in and the queue keeps its order.":"Patients are walking past the desk and the queue is starting in the corridor.")+'</p>';
+  var st=staffAt(-1),free=freeStaff();
+  if(st)h+='<button class="alt" data-a="off" data-arg="'+st.id+'">Take '+esc(st.first)+' off the door</button>';
+  else for(i=0;i<free.length;i++)h+='<button data-a="post" data-arg="'+free[i].id+'" data-arg2="-1">Post '+esc(free[i].first)+' to the door</button>';
+  h+='</div>';
+  h+='<div class="card"><h3>The seen-in queue</h3>';
+  if(!q.length)h+='<p>Nobody is waiting. The ward door is quiet.</p>';
+  for(i=0;i<q.length;i++){
+    h+='<button class="alt" data-a="patient" data-arg="'+q[i].id+'">'+(i+1)+'. '+esc(shortName(q[i]))+' · '+esc(q[i].cond)+
+      (q[i].why==="door"?" · hurting, the door is unstaffed":"")+'</button>';
+  }
+  h+='<button data-a="leaveOrder">Leave the order to triage</button>';
+  h+='</div>';
+  return wrap(head,h,"Back to the ward");
+}
+function corrHTML(){
+  var i,bl=[],r,head=headHTML("The corridor","the ward's own route"),h="";
+  for(i=0;i<6;i++)if(S.rooms[i].blocked)bl.push(i);
+  h+='<div class="card'+(bl.length?" want":"")+'"><h3>'+(bl.length?"A blocked tile":"The corridor is clear")+'</h3>';
+  if(bl.length){
+    r=S.rooms[bl[0]];
+    h+='<p>'+esc(r.kitIn||"A kit")+' is standing outside slot '+(bl[0]+1)+' and the corridor is one tile narrower for it. Kit here is 90cm; the door at slot '+(bl[0]+1)+' is '+r.door+'cm.</p>'+
+      '<button class="gilt" data-a="widen" data-arg="'+bl[0]+'">Widen the slot '+(bl[0]+1)+' door to 110cm for '+money(450)+'</button>'+
+      '<button class="alt" data-a="store" data-arg="'+bl[0]+'">Send the kit back to the store for '+money(290)+'</button>';
+  }else h+='<p>Every room can be reached, and the queue has a clear line from the door.</p>';
+  h+='</div>';
+  h+='<div class="mini">'+personIcon("#2A6B4F","#3FCBA3")+'<div><b class="hint">The corridor is the ward.</b><p class="hint">Queue length, blocked tiles and how far a patient is from the door are the three things that set the load.</p></div></div>';
+  return wrap(head,h,"Back to the ward");
+}
+function patientHTML(id){
+  var p=patientById(id),head,h="";
+  if(!p)return wrap(headHTML("The patient","gone home"),'<div class="card"><h3>This patient has gone home</h3><p>The bed is made up and the card is filed.</p></div>',"Back to the ward");
+  head=headHTML(p.first+" "+p.last,"card "+p.card+" in bed "+p.bed);
+  h+='<div class="card'+(p.card!==p.card0?" want":"")+'"><h3>'+esc(p.cond)+'</h3><p>'+esc(p.cj)+'</p>'+
+    '<p>Where they are: <b>'+esc(p.st==="queue"?"in the queue":(p.st==="bay"?"in a bay bed":(p.st==="treat"?"in the treatment room":(p.st==="lounge"?"in the discharge lounge":(p.st==="day"?"in the day room":"on their way home")))))+'</b></p>'+
+    '<p>The card in the bed says: <b>'+esc(p.cardCond||p.cond)+'</b>'+(p.card!==p.card0?" · that is not this patient":"")+'</p>'+
+    (p.why?'<p>Not happy about: '+esc(UNHAPPY[p.why]||p.why)+'</p>':'')+
+    '<span class="tag '+(p.card!==p.card0?"need":"ok")+'">'+(p.card!==p.card0?"card in the wrong bed":"card and patient match")+'</span></div>';
+  if(p.card!==p.card0){
+    h+='<div class="card want"><h3>Two cards are in the wrong beds</h3>'+
+      '<button class="gilt" data-a="swap" data-arg="'+p.id+'">Swap both cards back</button>'+
+      '<button class="alt" data-a="carry" data-arg="'+p.id+'">Treat on the card as written</button></div>';
+  }
+  if(p.st==="queue"){
+    var q=queueList(),i,pos=-1;
+    for(i=0;i<q.length;i++)if(q[i].id===p.id)pos=i;
+    h+='<div class="card"><h3>Ahead of them</h3><p>'+pos+' of '+q.length+' in the seen-in queue.</p>'+
+      '<div class="rowline"><button data-a="move" data-arg="'+p.id+'" data-arg2="-1">Move up one</button>'+
+      '<button class="alt" data-a="move" data-arg="'+p.id+'" data-arg2="1">Move down one</button></div></div>';
+  }
+  if(p.st==="bay"&&p.ready)h+='<div class="card"><h3>Ready for the treatment room</h3>'+
+    '<button data-a="totreat" data-arg="'+p.id+'">Take them to the treatment room by hand</button></div>';
+  return wrap(head,h,"Back to the ward");
+}
+function buildHTML(){
+  var h="",i,slots=[],head=headHTML("The build sheet",money(S.cash)+" to spend");
+  for(i=0;i<6;i++)if(!S.rooms[i].t)slots.push(i);
+  h+='<div class="card"><h3>'+(slots.length?"Open slots: "+slots.map(function(n){return n+1;}).join(", "):"The ward is full")+'</h3>'+
+    '<p>Rooms go in an open slot. Distance from the door is what a patient pays for it in acts.</p>'+
+    (S.standing>=62?'<p>The standing grade has brought one more room onto the sheet: the coat room.</p>':'')+'</div>';
+  for(i=0;i<ROMS.length;i++){
+    var d=ROMS[i];
+    if(d.id==="coat"&&S.standing<62)continue;
+    h+='<div class="card'+(S.pick===d.id?" want":"")+'"><div class="r1"><b>'+esc(d.n)+'</b><span>'+money(d.cost)+'</span></div>'+
+      '<p>'+esc(d.does)+'</p><p>Door '+d.door+'cm'+(d.kit?' · kit '+d.kit+'cm':'')+(d.role?' · needs a '+d.role:'')+'</p>';
+    if(slots.length)h+='<button data-a="pick" data-arg="'+d.id+'">Put the '+esc(d.n)+' in an open slot</button>';
+    if(S.pick===d.id){
+      for(var k=0;k<slots.length;k++)
+        h+='<button class="gilt" data-a="place" data-arg="'+slots[k]+'">Place the '+esc(d.n)+' in slot '+(slots[k]+1)+' · '+money(d.cost)+'</button>';
+    }
+    h+='</div>';
+  }
+  for(i=0;i<6;i++){
+    var r=S.rooms[i],dd=roomDef(r.t);
+    if(!r.t||!dd)continue;
+    if(r.door<110)h+='<div class="card"><div class="r1"><b>'+esc(dd.n)+' in slot '+(i+1)+'</b><span>door '+r.door+'cm</span></div>'+
+      '<button class="alt" data-a="widen" data-arg="'+i+'">Widen this door to 110cm for '+money(450)+'</button></div>';
+  }
+  return wrap(head,h,"Back to the ward");
+}
+function staffHTML(){
+  var h="",i,st,head=headHTML("The roster",S.staff.length+" on the books");
+  h+='<div class="card"><h3>Take somebody on</h3>'+
+    '<button data-a="hire" data-arg="porter">Take on a porter for '+money(480)+'</button>'+
+    '<button data-a="hire" data-arg="nurse">Take on a nurse for '+money(700)+'</button>'+
+    '<button data-a="hire" data-arg="doctor">Take on a doctor for '+money(980)+'</button></div>';
+  h+='<div class="sorts">'+
+   '<button data-a="sort" data-arg="role" class="'+(S.sort==="role"?"on":"")+'">By role</button>'+
+   '<button data-a="sort" data-arg="mood" class="'+(S.sort==="mood"?"on":"")+'">By mood</button>'+
+   '<button data-a="sort" data-arg="last" class="'+(S.sort==="last"?"on":"")+'">By what they last did</button></div>';
+  var list=S.staff.slice();
+  if(S.sort==="mood")list.sort(function(a,b){return MOODLADDER.indexOf(a.mood)-MOODLADDER.indexOf(b.mood);});
+  else if(S.sort==="last")list.sort(function(a,b){var x=a.last||"",y=b.last||"";return x<y?-1:(x>y?1:0);});
+  else list.sort(function(a,b){var x=ROLES.indexOf(a.role),y=ROLES.indexOf(b.role);return x-y;});
+  for(i=0;i<list.length;i++){
+    st=list[i];
+    h+='<div class="card"><div class="r1"><b>'+esc(st.first+" "+st.last)+'</b><span class="pill'+
+      (st.mood==="Steady"?" on":(st.mood==="Brisk"?" gilt":""))+'">'+esc(st.mood)+'</span></div>'+
+      '<p>'+esc(st.role)+' · '+esc(MOODS[st.mood].eff)+'</p>'+
+      '<p>'+esc(st.traits[0].n)+' <span class="hint">'+esc(st.traits[0].from)+'</span>, '+esc(st.traits[1].n)+' <span class="hint">'+esc(st.traits[1].from)+'</span></p>'+
+      '<p>Where: <b>'+(st.at===-1?"on the ward door":(st.at>=0?(st.at<6?esc(roomName(S.rooms[st.at]))+" slot "+(st.at+1):"out"):"off the floor"))+'</b> · last: '+esc(st.last||"came on shift")+'</p>'+
+      '<p>On the floor for '+st.tired+' acts without a break.</p>';
+    var s2=roomsNeedingStaff();
+    for(var k=0;k<s2.length;k++)
+      h+='<button class="alt" data-a="post" data-arg="'+st.id+'" data-arg2="'+s2[k]+'">Post '+esc(st.first)+' to slot '+(s2[k]+1)+'</button>';
+    h+='<button class="alt" data-a="rest" data-arg="'+st.id+'">Send '+esc(st.first)+' to the staff room</button>'+
+      '<button class="alt" data-a="off" data-arg="'+st.id+'">Take '+esc(st.first)+' off the floor</button>'+
+      '<button class="alt" data-a="name" data-arg="'+st.id+'">Write '+esc(st.first)+' another name</button></div>';
+  }
+  return wrap(head,h,"Back to the ward");
+}
+function roomsNeedingStaff(){
+  var o=[],i;
+  for(i=0;i<6;i++)if(S.rooms[i].t&&needsStaff(i))o.push(i);
+  return o;
+}
+function reportHTML(){
+  var h="",i,head=headHTML("The shift report","what happened while you were away");
+  h+='<div class="card want"><h3>The ward carried on</h3>';
+  for(i=0;i<S.report.length;i++)h+='<p>'+esc(S.report[i])+'</p>';
+  h+='</div>';
+  h+=filesHTML();
+  return wrap(head,h,"Take the ward over","close");
+}
+function resultHTML(){
+  var g=S.grade,r=S.register[S.register.length-1]||{};
+  var head=headHTML("Visit signed off","day "+S.day+" · visit "+S.visit);
+  var h='<div class="card"><div class="r1"><b>Grade '+g+'</b><span>'+gradeWord(g)+'</span></div>'+
+    '<p>Standing grade '+S.standing+' across '+S.register.length+' visits in the register.</p></div>';
+  h+='<div class="card"><h3>What the ward did</h3>'+
+    '<p>Cases treated: <b>'+S.treated+'</b>. Wrong kit: <b>'+S.wrongKit+'</b>. Calls deferred: <b>'+S.deferred+'</b>. Peak load: <b>'+peakLoad()+'</b>.</p>'+
+    '<p>The register has written this visit down as day '+S.day+', visit '+S.visit+'.</p></div>';
+  h+=filesHTML();
+  return wrap(head,h,"Carry on to the next visit","nextVisit");
+}
+function gradeWord(g){
+  if(g>=80)return "the ward is in your hands";
+  if(g>=62)return "steady";
+  if(g>=45)return "it held together";
+  return "the ward had a bad day";
+}
+function handoverHTML(){
+  var head=headHTML("The hand-over","pick one thing to run by hand");
+  var h='<div class="card"><h3>One thing, the rest of the visit</h3><p>Staff who are answered go steadier. Staff who are deferred go flatter.</p></div>';
+  h+='<div class="card'+(S.handover==="queue"?" want":"")+'"><h3>The queue</h3><p>Run the seen-in order by hand all visit.</p>'+
+    '<button data-a="handover" data-arg="queue">Run the queue by hand</button></div>';
+  h+='<div class="card'+(S.handover==="kit"?" want":"")+'"><h3>The kit</h3><p>Chase the kit to the rooms that need it.</p>'+
+    '<button data-a="handover" data-arg="kit">Run the kit by hand</button></div>';
+  h+='<div class="card'+(S.handover==="mood"?" want":"")+'"><h3>The moods</h3><p>Answer every call and keep the floor steady.</p>'+
+    '<button data-a="handover" data-arg="mood">Run the moods by hand</button></div>';
+  return wrap(head,h,"Back to the ward without choosing");
+}
+function visitorHTML(){
+  var head=headHTML("A consultant is at the door","the ward is full");
+  var h='<div class="card want"><h3>Load '+S.load+'</h3><p>The consultant has come to look at the ward on its busiest hour.</p></div>'+
+   '<button class="gilt" data-a="visitor" data-arg="consultant">Walk the round with the consultant</button>'+
+   '<div class="card"><p>That costs the middle of the day and it lifts the whole floor.</p>'+
+   '<button class="alt" data-a="visitor" data-arg="send">Send the senior nurse round with them</button></div>';
+  return wrap(head,h,"Back to the ward");
+}
+function chainHTML(){
+  var h="",i,head=headHTML("The chain","Bay Four and the register");
+  h+='<div class="card"><h3>Bay Four</h3><p>The ward in your hands. '+S.staff.length+' on the roster, '+
+    (function(){var n=0,k;for(k=0;k<6;k++)if(S.rooms[k].t)n++;return n;})()+' rooms in use, '+S.register.length+' visits in the register.</p>'+
+    '<p>Standing grade <b>'+S.standing+'</b>. '+chainNext()+'</p></div>';
+  h+='<div class="card"><h3>The register</h3>';
+  var reg=S.register.slice(-6);
+  if(!reg.length)h+='<p>No visit has been signed off yet. The first entry is yours to write.</p>';
+  for(i=reg.length-1;i>=0;i--){
+    h+='<p>Day '+reg[i].day+', visit '+reg[i].visit+': grade '+reg[i].grade+(reg[i].note?' · '+esc(reg[i].note):'')+'</p>';
+  }
+  h+='</div>';
+  h+='<div class="card"><h3>Settings</h3>'+
+    '<button class="sw" data-a="sound"><span><b>Sound</b><span>'+(S.sound?"short cues from the ward are on":"off until you ask for it")+'</span></span><span class="pill'+(S.sound?" on":"")+'">'+(S.sound?"On":"Off")+'</span></button>'+
+    '<button class="sw" data-a="motion"><span><b>Motion</b><span>'+(S.motion?"the ward moves when it needs to":"the ward holds still")+'</span></span><span class="pill'+(S.motion?" on":"")+'">'+(S.motion?"On":"Off")+'</span></button>'+
+    '<button class="sw" data-a="haptics"><span><b>Haptics</b><span>'+(S.haptics?"a short tap when a call arrives":"no tapping")+'</span></span><span class="pill'+(S.haptics?" on":"")+'">'+(S.haptics?"On":"Off")+'</span></button></div>';
+  h+='<div class="card"><h3>Text size</h3><div class="seg">'+
+    '<button data-a="scale" data-arg="0" class="'+(S.scale==0?"on":"")+'">Small</button>'+
+    '<button data-a="scale" data-arg="1" class="'+(S.scale==1?"on":"")+'">Normal</button>'+
+    '<button data-a="scale" data-arg="2" class="'+(S.scale==2?"on":"")+'">Large</button></div></div>';
+  h+='<div class="card"><h3>The third slot in the strip</h3><div class="seg">'+
+    '<button data-a="strip" data-arg="load" class="'+(S.strip==="load"?"on":"")+'">Load</button>'+
+    '<button data-a="strip" data-arg="grade" class="'+(S.strip==="grade"?"on":"")+'">Grade</button>'+
+    '<button data-a="strip" data-arg="staff" class="'+(S.strip==="staff"?"on":"")+'">On floor</button></div></div>';
+  h+='<div class="card"><h3>Time</h3><p>Nothing here calls out to anything. The numbers are the ward\'s own.</p>'+
+    '<button class="alt" data-a="away" data-arg="8">Step away for eight hours</button>'+
+    '<button class="alt" data-a="away" data-arg="48">Step away for two days</button></div>';
+  h+='<div class="card warnx"><h3>Start again</h3><p>This clears the register, the roster and the ward.</p>'+
+    '<button class="warnx" data-a="reset">'+(S.confirm==="reset"?"Confirm: clear the ward and start again":"Clear the ward and start again")+'</button></div>';
+  return wrap(head,h,"Back to the ward");
+}
+function chainNext(){
+  if(S.staff.length<2)return "Take somebody on before the next visit.";
+  if(S.standing<62)return "A standing grade of 62 brings the coat room onto the build sheet.";
+  if(S.standing<74)return "A standing grade of 74 is where the chain starts watching.";
+  return "The chain is watching this ward now.";
+}
+
+
+/* ============================================================
+   7. THE SOUND. Off until the player asks for it. Short cues
+   made here from an oscillator, and nothing touches the network.
+   ============================================================ */
+var _ac=null;
+function cue(kind){
+  if(!S||!S.sound)return;
+  try{
+    if(!_ac)_ac=new (window.AudioContext||window.webkitAudioContext)();
+    var t=_ac.currentTime,o=_ac.createOscillator(),g=_ac.createGain();
+    var hz=kind==="money"?520:(kind==="call"?300:(kind==="ok"?660:420));
+    o.type=kind==="call"?"triangle":"sine";
+    o.frequency.setValueAtTime(hz,t);
+    if(kind==="money")o.frequency.linearRampToValueAtTime(hz*1.5,t+0.12);
+    if(kind==="call")o.frequency.linearRampToValueAtTime(hz*0.8,t+0.18);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.09,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.2);
+    o.connect(g);g.connect(_ac.destination);
+    o.start(t);o.stop(t+0.22);
+  }catch(e){}
+}
+function buzz(ms){
+  if(!S.haptics)return;
+  try{if(navigator.vibrate)navigator.vibrate(ms||12);}catch(e){}
+}
+/* ============================================================
+   8. EVERY ACTION A PLAYER CAN TAKE.
+   GAME.act takes these names. The comment block above GAME.act
+   lists them for whoever is testing the build.
+     walk ............. walk the round, reading every occupied room
+     room slot ........ open the room card for a slot, 0 to 5
+     door ............. open the ward door card, which holds the queue
+     corridor ......... open the corridor card, which holds the blocked tile
+     patient id ....... open the patient card
+     build ............ open the build sheet
+     pick roomType .... choose a room type to put in an open slot
+     place slot ....... build the chosen room in that slot and pay for it
+     widen slot ....... widen that room's door to 110cm and unblock it
+     store slot ....... send the scanner back to the store and unblock it
+     demolish slot .... clear that room and take 80% of its cost back
+     post staffId slot  post a member of staff to a slot, -1 is the ward door
+     off staffId ...... take a member of staff off the floor
+     rest staffId ..... send a member of staff to the staff room
+     name staffId ..... write that member of staff another name
+     hire role ........ take somebody on, role is porter, nurse or doctor
+     sort key ......... sort the roster by role, mood or last
+     answer 0 or 1 .... answer the call on the screen, 0 is the first choice
+     callLater ........ close the call and leave it on the bar
+     opencall ......... open the call again
+     swap id .......... swap both cards back into the right beds
+     carry id ......... treat on the card as written
+     move id dir ...... move a patient in the queue, dir is -1 or 1
+     leaveOrder ....... leave the queue order to triage
+     toTreat id ....... take that patient to the treatment room by hand
+     handover aspect .. run queue, kit or mood by hand
+     visitor choice ... walk the consultant round or send the senior nurse
+     signOff .......... sign the visit off, write the grade in the register
+     nextVisit ........ begin the next visit
+     report ........... reopen the shift report
+     chain ............ open the chain card, the register and the settings
+     roster ........... open the staff panel
+     sound/motion/haptics  toggle that setting
+     scale 0..2 ....... text size
+     strip load/grade/staff  the third slot in the strip
+     away hours ....... step away for that many hours, which pays and reports
+     reset ............ clear the ward and start again, twice to confirm
+     close ............ close whatever is open and go back to the ward
+   ============================================================ */
+function act(name,arg,arg2){
+  var i,st,n;
+  switch(name){
+    case "walk":walkRound();break;
+    case "room":
+      n=parseInt(arg,10);
+      if(n>=0&&n<6)openSheet("sh-room",{slot:n});
+      break;
+    case "door":openSheet("sh-room",{slot:-1});break;
+    case "corridor":openSheet("sh-room",{slot:-2});break;
+    case "queue":openSheet("sh-room",{slot:-1});break;
+    case "patient":openSheet("sh-patient",{id:parseInt(arg,10)});break;
+    case "build":openSheet("sh-build");break;
+    case "roster":openSheet("sh-staff");break;
+    case "chain":openSheet("sh-chain");break;
+    case "report":S.resultHTML=0;openSheet("sh-report");break;
+    case "close":closeSheets();S.modalOff=0;break;
+    case "pick":S.pick=arg;break;
+    case "place":placeRoom(parseInt(arg,10),S.pick);break;
+    case "widen":widen(slotWanted(arg));break;
+    case "store":storeKit(slotWanted(arg));break;
+    case "demolish":demolish(parseInt(arg,10));break;
+    case "post":post(parseInt(arg,10),parseInt(arg2,10));break;
+    case "off":offFloor(parseInt(arg,10));break;
+    case "rest":restStaff(parseInt(arg,10));break;
+    case "name":rename(parseInt(arg,10));break;
+    case "hire":hire(arg);break;
+    case "sort":S.sort=arg;break;
+    case "answer":answerCall(parseInt(arg,10));S.modalOff=0;break;
+    case "callLater":S.modalOff=1;break;
+    case "opencall":S.modalOff=0;break;
+    case "swap":fixSwap();S.cardCall=1;break;
+    case "carry":S.cardCall=2;S.note="The ward treated on the card as written.";break;
+    case "move":moveInQueue(parseInt(arg,10),parseInt(arg2,10));break;
+    case "leaveOrder":S.leftOrder=1;S.note="The order stays with triage.";break;
+    case "toTreat":toTreat(parseInt(arg,10));break;
+    case "handover":S.handover=arg;S.note="You are running the "+arg+" by hand.";break;
+    case "visitor":handleVisitor(arg);break;
+    case "signOff":signOff();S.resultHTML=1;openSheet("sh-report");break;
+    case "nextVisit":S.resultHTML=0;S.signed=0;nextVisit();closeSheets();break;
+    case "sound":S.sound=S.sound?0:1;if(S.sound)cue("ok");break;
+    case "motion":S.motion=S.motion?0:1;break;
+    case "haptics":S.haptics=S.haptics?0:1;buzz(14);break;
+    case "scale":S.scale=parseInt(arg,10)||0;applyScale();break;
+    case "strip":S.strip=arg;break;
+    case "away":awayTick(parseFloat(arg)||8);S.resultHTML=0;openSheet("sh-report");break;
+    case "reset":
+      if(S.confirm==="reset"){doReset();return true;}
+      S.confirm="reset";break;
+    default:return false;
+  }
+  S.dirty=1;
+  syncRooms();
+  if(!S.norender)render();
+  if(!S.norender&&name!=="close")save();
+  return true;
+}
+function placeRoom(slot,type){
+  var d=roomDef(type),r=roomAt(slot);
+  if(!d||!r||r.t)return 0;
+  if(S.cash<d.cost)return 0;
+  if(type==="coat"&&S.standing<62)return 0;
+  S.cash-=d.cost;
+  S.rooms[slot]=mkRoom(type,slot);
+  if(type==="treat"&&S.rooms[slot].door<90){/* the kit lands at the snag, not at the build */}
+  S.pick="";
+  S.note="The "+d.n+" is in slot "+(slot+1)+". It cost "+money(d.cost)+".";
+  return 1;
+}
+function slotWanted(arg){
+  var n=parseInt(arg,10),i;
+  if(n>=0&&n<6)return n;
+  for(i=0;i<6;i++)if(S.rooms[i].blocked)return i;
+  for(i=0;i<6;i++)if(S.rooms[i].t==="treat")return i;
+  return -1;
+}
+function widen(slot){
+  var r=roomAt(slot),d;
+  if(!r)return 0;
+  d=roomDef(r.t);
+  if(!r||!r.t)return 0;
+  if(S.cash<450)return 0;
+  S.cash-=450;r.door=110;
+  if(r.blocked){r.blocked=0;r.fitted=1;r.kitIn="";S.blockedTiles=0;S.snagFixed=(S.snagFixed||0)+1;}
+  S.note="The door at slot "+(slot+1)+" is 110cm now.";
+  return 1;
+}
+function storeKit(slot){
+  var r=roomAt(slot);
+  if(!r)return 0;
+  if(!r||!r.blocked)return 0;
+  r.blocked=0;r.fitted=0;r.kitIn="";
+  S.cash+=290;S.blockedTiles=0;S.snagLeft=1;
+  S.note="The scanner has gone back to the store. The room works on the old trolley kit for half the pay.";
+  return 1;
+}
+function demolish(slot){
+  var r=roomAt(slot),d,k,lastTreat=0,lastTriage=0;
+  if(!r||!r.t)return 0;
+  if(S.confirm!==slot){S.confirm=slot;return 1;}
+  S.confirm=0;
+  for(k=0;k<6;k++){
+    if(S.rooms[k].t==="treat")lastTreat++;
+    if(S.rooms[k].t==="triage")lastTriage++;
+  }
+  if(r.t==="treat"&&lastTreat<2){S.note="The ward has to keep one treatment room.";return 0;}
+  if(r.t==="triage"&&lastTriage<2){S.note="The ward has to keep one triage room.";return 0;}
+  S.cash+=Math.round(d.cost*0.8);
+  S.rooms[slot]=mkRoom("",slot);
+  S.note="Slot "+(slot+1)+" is clear. The ward took "+money(Math.round(d.cost*0.8))+" back.";
+  return 1;
+}
+function post(id,slot){
+  var st=staffById(id);
+  if(!st)return 0;
+  if(slot>=-1&&slot<6)st.at=slot;
+  st.tired=0;
+  st.last="was posted to "+(slot===-1?"the ward door":("slot "+(slot+1)));
+  S.note=st.first+" is on "+(slot===-1?"the ward door":("slot "+(slot+1)))+".";
+  return 1;
+}
+function offFloor(id){
+  var st=staffById(id);
+  if(!st)return 0;
+  st.at=-2;st.last="came off the floor";
+  S.note=st.first+" is off the floor.";
+  return 1;
+}
+function rename(id){
+  var st=staffById(id),old;
+  if(!st)return 0;
+  old=st.first;st.first=pick(FIRSTS);
+  st.last=pick(LASTS);
+  S.note=old+" is called "+st.first+" "+st.last+" now.";
+  return 1;
+}
+function hire(role){
+  var cost=role==="doctor"?980:(role==="nurse"?700:480);
+  if(S.cash<cost)return 0;
+  S.cash-=cost;
+  S.staff.push(newStaff(role));
+  S.note="Somebody new is on the books.";
+  return 1;
+}
+function moveInQueue(id,dir){
+  var p=patientById(id),q=queueList(),i,t;
+  if(!p||p.st!=="queue")return 0;
+  for(i=0;i<q.length;i++)if(q[i].id===id)break;
+  var j=i+(dir<0?-1:1);
+  if(j<0||j>=q.length)return 0;
+  t=q[i].ord;q[i].ord=q[j].ord;q[j].ord=t;
+  S.moved=(S.moved||0)+1;
+  S.note="You set the queue by hand.";
+  return 1;
+}
+function toTreat(id){
+  var p=patientById(id),ts=treatSlotFree();
+  if(!p||p.st!=="bay"||ts<0)return 0;
+  var r=S.rooms[ts];
+  p.st="treat";p.room=ts;p.bed=1;p.wait=0;p.pay0=p.pay;
+  r.busy=p.id;r.busyLeft=3;
+  S.note=shortName(p)+" was taken to the treatment room by hand.";
+  return 1;
+}
+function doReset(){
+  try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+  S=freshWard();
+  seedRng((Date.now()%99991)+1);
+  S.sound=0;
+  applyScale();
+  closeSheets();
+  render();
+  save();
+  return 1;
+}
+function applyScale(){
+  var n=el("phone");
+  n.style.fontSize=(S.scale==0?"14px":(S.scale==2?"17px":"15px"));
+  n.className=S.motion?"":"nomotion";
+}
+/* ============================================================
+   9. ROUTES. One tap handler for every control in the ward, so
+   the buttons and GAME.act are the same code path.
+   ============================================================ */
+function onClick(e){
+  var t=e.target,guard=0;
+  while(t&&t!==document.body&&guard++<8){
+    if(t.getAttribute&&t.getAttribute("data-a"))break;
+    t=t.parentNode;
+  }
+  if(!t||t===document.body||!t.getAttribute)return;
+  if(t===el("veil")){closeSheets();S.modalOff=1;return;}
+  var a=t.getAttribute("data-a");
+  if(a==="answer"||a==="callLater")cue(a==="answer"?"ok":"click");
+  else if(a==="signOff")cue("money");
+  else cue("click");
+  buzz(10);
+  act(a,t.getAttribute("data-arg"),t.getAttribute("data-arg2"));
+}
+function onKey(e){
+  if(e.key==="Escape"){
+    if(el("md-call").className==="on"){S.modalOff=1;render();}
+    else closeSheets();
+    render();
+  }
+}
+/* ============================================================
+   10. THE TEST HOOKS. seed, state, act, advance, problems.
+   ============================================================ */
+function stateObj(){
+  var on=0,i,pend="";
+  for(i=0;i<S.staff.length;i++)if(S.staff[i].at>=-1)on++;
+  if(S.pending)pend=shortWho(S.pending.staff);
+  return {
+    screen:S.sheet||"ward",act:S.act,day:S.day,visit:S.visit,
+    cash:Math.round(S.cash),queue:queueList().length,load:S.load,peak:peakLoad(),
+    standing:S.standing,grade:S.grade,graded:S.graded||0,
+    rooms:(function(){var n=0,k;for(k=0;k<6;k++)if(S.rooms[k].t)n++;return n;})(),
+    openSlots:(function(){var n=0,k;for(k=0;k<6;k++)if(!S.rooms[k].t)n++;return n;})(),
+    staff:S.staff.length,onFloor:on,
+    patients:S.patients.length,treated:S.treated,wrongKit:S.wrongKit,deferred:S.deferred,
+    seen:S.seen,misplaced:S.misplace,snag:S.snag,snagFixed:S.snagFixed||0,
+    calls:S.calls||0,pending:pend,modal:S.pending&&!S.modalOff?1:0,
+    handover:S.handover||"",visitor:S.visited||0,
+    blocked:(function(){var n=0,k;for(k=0;k<6;k++)if(S.rooms[k].blocked)n++;return n;})(),
+    unlocks:S.unlocks.length,register:S.register.length,reportLines:S.report.length,
+    awayShifts:S.awayShifts||0,
+    treatedNow:S.treated,loadNow:S.load,
+    sound:S.sound?1:0,motion:S.motion?1:0,haptics:S.haptics?1:0,scale:S.scale,strip:S.strip,sort:S.sort,
+    signed:S.signed?1:0,result:S.resultHTML?1:0,acted:S.acted||0,
+    actsInVisit:S.acts,
+    problems:problems().length
+  };
+}
+function problems(){
+  var out=[],k,i,nums,more;
+  nums={cash:S.cash,load:S.load,standing:S.standing,grade:S.grade,day:S.day,visit:S.visit,
+    acts:S.acts,queue:queueList().length};
+  for(k in nums)
+    if(typeof nums[k]!=="number"||isNaN(nums[k])||!isFinite(nums[k]))out.push("state "+k+" is not a finite number");
+  if(S.rooms.length!==6)out.push("the ward does not have six slots");
+  if(S.staff.length<2)out.push("fewer than two on the roster");
+  if(queueList().length>9)out.push("the queue has run past what the corridor holds");
+  if(S.load<0||S.load>100)out.push("the load has left the range the ward uses");
+  if(S.cash<0)out.push("the cash has gone negative");
+  if(!roomsOf("triage").length)out.push("the ward has no triage room");
+  if(!roomsOf("treat").length)out.push("the ward has no treatment room");
+  if(S.pending&&!staffById(S.pending.staff))out.push("a call is open on somebody who is not on the roster");
+  if(!el("b-main").getAttribute("data-a"))out.push("the bar has no way on");
+  for(i=0;i<6;i++){
+    if(S.rooms[i].t==="")continue;
+    if(!roomDef(S.rooms[i].t))out.push("slot "+(i+1)+" holds a room type the ward does not know");
+    if(S.rooms[i].door<40||S.rooms[i].door>220)out.push("slot "+(i+1)+" has a door width that is not a width");
+  }
+  for(i=0;i<S.patients.length;i++){
+    var p=S.patients[i];
+    if(p.st==="bay"){
+      var r=roomAt(p.room);
+      if(!r||r.t!=="bay")out.push("a patient is bedded in a room that is not a bay");
+      if(p.bed!==1&&p.bed!==2)out.push("a patient is in a bed that does not exist");
+    }
+    if(!p.cond||CONDS.map(function(c){return c.n;}).indexOf(p.cond)<0)
+      out.push("a patient has a condition the ward does not treat");
+  }
+  more=scanText().concat(scanTargets(),scanHandlers(),scanExternal());
+  for(i=0;i<more.length;i++)if(out.indexOf(more[i])<0)out.push(more[i]);
+  return out;
+}
+var TEXTBAN=["\u2014","\u2013","!","not built","coming soon","placeholder","does nothing",
+  "not working yet","lorem","todo","tbd","undefined","NaN","null","hermes","subagent","file://","/home/"];
+function scanText(){
+  var bad=[],seen={},i,j,nodes=document.querySelectorAll("#phone *");
+  for(i=0;i<nodes.length;i++){
+    var node=nodes[i];
+    if(node.closest&&node.closest("svg"))continue;
+    var own="",kids=node.childNodes;
+    for(j=0;j<kids.length;j++)if(kids[j].nodeType===3)own+=kids[j].nodeValue;
+    if(!own.trim())continue;
+    var low=own.toLowerCase();
+    for(var b=0;b<TEXTBAN.length;b++){
+      if(low.indexOf(TEXTBAN[b].toLowerCase())>=0){
+        var key=TEXTBAN[b]+"|"+own.trim().slice(0,40);
+        if(!seen[key]){seen[key]=1;bad.push("banned text "+JSON.stringify(TEXTBAN[b])+" in "+JSON.stringify(own.trim().slice(0,50)));}
+      }
+    }
+  }
+  return bad;
+}
+function scanTargets(){
+  var bad=[],btns=document.querySelectorAll("#phone button"),i;
+  for(i=0;i<btns.length;i++){
+    var b=btns[i];
+    if(b.offsetParent===null&&b.getClientRects().length===0)continue;
+    var r=b.getBoundingClientRect();
+    if(r.width<44||r.height<44)
+      bad.push("tap target under 44: "+(b.id||(b.textContent||"").trim().slice(0,24))+" is "+
+        Math.round(b.offsetWidth)+" by "+Math.round(b.offsetHeight));
+  }
+  return bad;
+}
+function scanHandlers(){
+  var bad=[],btns=document.querySelectorAll("#phone button"),i;
+  for(i=0;i<btns.length;i++){
+    var b=btns[i];
+    if(!b.getAttribute("data-a"))
+      bad.push("button with no action: "+JSON.stringify((b.textContent||"").trim().slice(0,40)));
+  }
+  return bad;
+}
+function scanExternal(){
+  var bad=[],els=document.querySelectorAll("[src],[href]"),i;
+  for(i=0;i<els.length;i++){
+    var v=els[i].getAttribute("src")||els[i].getAttribute("href")||"";
+    if(/^(https?:)?\/\//.test(v)||/^data:image/.test(v))bad.push("external request: "+v.slice(0,60));
+  }
+  return bad;
+}
+window.WARD={
+  treatSlot:function(){var r=roomsOf("treat");return r.length?r[0]:-1;},
+  blockedSlot:function(){var i;for(i=0;i<6;i++)if(S.rooms[i].blocked)return i;return -1;},
+  swapPair:function(){return S.swapPair?S.swapPair.slice():[];},
+  queue:function(){return queueList().map(function(p){return p.id;});},
+  roster:function(){return S.staff.map(function(s){return s.id;});},
+  call:function(){return S.pending?S.pending.staff:0;},
+  rooms:function(){return S.rooms.map(function(r){return r.t;});}
+};
+window.GAME={
+  seed:function(n){seedRng(n||1);return true;},
+  state:stateObj,
+  act:act,
+  advance:function(sec){
+    var left=Math.max(0,sec||0),step=ACTSECONDS/4,guard=0;
+    S.norender=1;
+    while(left>0&&guard++<40000){var d=Math.min(step,left);tick(d);left-=d;}
+    S.norender=0;S.dirty=0;
+    render();
+    return true;
+  },
+  problems:problems,
+  version:"ward-watch 1.0"
+};
+/* ============================================================
+   11. BOOT
+   ============================================================ */
+var _lastAct=-1,_lastT=0;
+var PLANW=0,PLANH=0;
+function planFit(){
+  var ww=el("wardwrap"),lg=el("legend"),W,H,sc;
+  if(!ww)return;
+  W=ww.clientWidth-16;
+  H=ww.clientHeight-(lg?lg.offsetHeight:0)-30;
+  sc=Math.min(W/374,H/452);
+  if(!(sc>0.25))sc=0.25;
+  if(sc>1.4)sc=1.4;
+  apply(sc);
+  var ph=el("phone");
+  if(ph&&ph.scrollHeight>ph.clientHeight+1){
+    var over=ph.scrollHeight-ph.clientHeight;
+    sc=Math.max(0.25,(PLANH-over)/452);
+    apply(sc);
+  }
+}
+function apply(sc){
+  PLANW=Math.round(374*sc);PLANH=Math.round(452*sc);
+  el("plan").style.width=PLANW+"px";
+  el("plan").style.height=PLANH+"px";
+  el("wardart").style.width=PLANW+"px";
+  el("wardart").style.height=PLANH+"px";
+}
+function fit(){
+  var st=el("stage"),g=el("ground");
+  var w=g.clientWidth,h=g.clientHeight;
+  var s=Math.min(1,w/390,h/844);
+  st.style.transform="scale("+s+")";
+  planFit();
+}
+addEventListener("resize",function(){fit();});
+function frame(t){
+  if(!_lastT)_lastT=t;
+  var dt=Math.min(0.5,(t-_lastT)/1000);
+  _lastT=t;
+  tick(dt);
+  if(S.acts!==_lastAct||S.dirty){
+    _lastAct=S.acts;S.dirty=0;
+    var sc=null;
+    if(S.sheet){var bd=el(S.sheet).querySelector(".bd");if(bd)sc=bd.scrollTop;}
+    render();
+    if(sc!==null){var bd2=el(S.sheet).querySelector(".bd");if(bd2)bd2.scrollTop=sc;}
+  }
+  requestAnimationFrame(frame);
+}
+function boot(){
+  var away=false;
+  try{away=load();}catch(e){S=freshWard();}
+  if(typeof S.away!=="number")S.away=0;
+  if(!S.rooms||S.rooms.length!==6)S.rooms=freshWard().rooms;
+  if(!S.staff||!S.staff.length)S.staff=freshWard().staff;
+  seedRng((Date.now()%99991)+1);
+  if(S.away>0.5)awayTick(S.away);
+  el("s-loadfill").style.transform="scaleX(0)";
+  document.addEventListener("click",onClick);
+  document.addEventListener("keydown",onKey);
+  window.addEventListener("resize",fit);
+  window.addEventListener("orientationchange",fit);
+  if(el("s-queue"))el("s-queue").setAttribute("data-a","door");
+  applyScale();
+  loadCalc();
+  fit();
+  render();
+  fit();
+  setTimeout(fit,140);
+  setTimeout(fit,700);
+  requestAnimationFrame(frame);
+  if(S.report.length){S.act=1;openSheet("sh-report");}
+  else setTimeout(function(){if(!S.pending&&!S.signed){raiseCall();S.lastCall=S.acts;S.dirty=1;}} ,1200);
+}
+boot();
+
+</script>
+</body>
+</html>
