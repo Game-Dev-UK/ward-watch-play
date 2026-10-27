@@ -2712,12 +2712,61 @@ function t3items(ig,f,i){
     if(!K)continue;
     var px=(it.gx+0.5)*(W3.cw-4)/W3.gx-(W3.cw-4)/2;
     var pz=(it.gy+0.5)*(W3.cd-4)/W3.gy-(W3.cd-4)/2;
-    var m=boxMesh(K.w,K.h,K.d,K.c);
-    m.position.set(px,K.h/2,pz);
+    var g=new THREE.Group();
+    g.position.set(px,0,pz);
     if(it.k==="bed"){
-      var pl=boxMesh(K.w-4,3,8,0xF7F3E7);pl.position.set(0,K.h/2+1.5,-K.d/2+5);m.add(pl);
+      // Frame
+      var fr=boxMesh(K.w,K.h-2,K.d,0x8A7355);fr.position.set(0,K.h/2-1,0);g.add(fr);
+      // Mattress
+      var mt=boxMesh(K.w-3,3,K.d-2,0xF7F3E7);mt.position.set(0,K.h-1,0);g.add(mt);
+      // Pillow
+      var pw=boxMesh(K.w-6,2,7,0xE8E0D4);pw.position.set(0,K.h+1,-K.d/2+5);g.add(pw);
+      // Blanket fold
+      var bl=boxMesh(K.w-4,1,K.d-6,0xD9CFC0);bl.position.set(0,K.h+0.5,2);g.add(bl);
+      // Headboard
+      var hb=boxMesh(K.w,8,3,0x7A6548);hb.position.set(0,K.h/2+4,-K.d/2-1);g.add(hb);
+    }else if(it.k==="chair"){
+      // Seat
+      var st=boxMesh(K.w,3,K.d,0xB08A57);st.position.set(0,K.h-2,0);g.add(st);
+      // Back
+      var bk=boxMesh(K.w,6,3,0x9A7648);bk.position.set(0,K.h+1,-K.d/2+2);g.add(bk);
+      // Legs
+      var lg1=boxMesh(2,K.h-3,2,0x7A6548);lg1.position.set(-K.w/2+2,(K.h-3)/2,-K.d/2+2);g.add(lg1);
+      var lg2=boxMesh(2,K.h-3,2,0x7A6548);lg2.position.set(K.w/2-2,(K.h-3)/2,-K.d/2+2);g.add(lg2);
+      var lg3=boxMesh(2,K.h-3,2,0x7A6548);lg3.position.set(-K.w/2+2,(K.h-3)/2,K.d/2-2);g.add(lg3);
+      var lg4=boxMesh(2,K.h-3,2,0x7A6548);lg4.position.set(K.w/2-2,(K.h-3)/2,K.d/2-2);g.add(lg4);
+    }else if(it.k==="locker"){
+      // Body
+      var bd=boxMesh(K.w,K.h,K.d,0x9BA8A2);bd.position.set(0,K.h/2,0);g.add(bd);
+      // Door panel
+      var dr=boxMesh(K.w-1,K.h-2,1,0xAAB6B0);dr.position.set(0,K.h/2,K.d/2);g.add(dr);
+      // Handle
+      var hn=boxMesh(1,3,2,0x5A6A64);hn.position.set(K.w/2-2,K.h/2,K.d/2+1);g.add(hn);
+      // Vent
+      var vn=boxMesh(K.w-4,2,1,0x7A8A84);vn.position.set(0,K.h-3,K.d/2+0.5);g.add(vn);
+    }else if(it.k==="sink"){
+      // Pedestal
+      var pd=boxMesh(6,K.h,6,0xBFD3D8);pd.position.set(0,K.h/2,0);g.add(pd);
+      // Basin
+      var bs=boxMesh(K.w,K.h/2,K.d,0xDCE8EC);bs.position.set(0,K.h+1,0);g.add(bs);
+      // Basin rim
+      var rm2=boxMesh(K.w+1,2,K.d+1,0xC8D8DC);rm2.position.set(0,K.h+2.5,0);g.add(rm2);
+      // Faucet
+      var fc=boxMesh(2,6,2,0x9AAAB0);fc.position.set(0,K.h+5,-K.d/2+2);g.add(fc);
+      var sp=boxMesh(6,2,2,0x9AAAB0);sp.position.set(0,K.h+8,-K.d/2+2);g.add(sp);
+    }else if(it.k==="monitor"){
+      // Stand
+      var sd=boxMesh(4,K.h-6,4,0x7E8C86);sd.position.set(0,(K.h-6)/2,0);g.add(sd);
+      // Base
+      var bs2=boxMesh(K.w,K.h/4,K.d,0x6E7C76);bs2.position.set(0,K.h-6,0);g.add(bs2);
+      // Screen
+      var sc2=boxMesh(K.w,K.h-4,2,0x2A3A40);sc2.position.set(0,K.h-2,K.d/2+1);g.add(sc2);
+      // Screen glow
+      var gl=boxMesh(K.w-2,K.h-6,1,0x7FC0D0);gl.position.set(0,K.h-2,K.d/2+2);g.add(gl);
+    }else{
+      var m=boxMesh(K.w,K.h,K.d,K.c);m.position.set(0,K.h/2,0);g.add(m);
     }
-    ig.add(m);
+    ig.add(g);
   }
 }
 function t3sync(){
@@ -2731,7 +2780,7 @@ function t3sync(){
       g.userData.mats[i].transparent=alpha<1;
       g.userData.mats[i].opacity=alpha;
     }
-    g.visible=T3.editor?(f===T3.level):(f<=T3.level);
+    g.visible=T3.editor?(f===T3.level):(T3.expo?true:(f===T3.level));
     for(i=0;i<g.children.length;i++)if(g.children[i].isSprite)g.children[i].visible=(on||!!T3.expo);
   }
   var t=document.querySelectorAll("#v3d-tabs button");
@@ -2801,7 +2850,7 @@ function t3open(){
   closeSheets();
   T3.open=1;T3.editor=null;
   document.getElementById("v3d").className="on";
-  if(t3init()){t3resize();t3sync();t3loop();}
+  if(t3init()){setTimeout(function(){t3resize();t3sync();t3loop();},0);}
 }
 function t3close(){
   T3.open=0;T3.editor=null;
@@ -2942,6 +2991,8 @@ function t3events(){
 }
 
 t3events();
+// 3D ward is the main view: open it on load.
+try{t3open();}catch(e){}
 decorateIcons();
 new MutationObserver(iconSweep).observe(document.getElementById("phone"),{childList:true,subtree:true});
 </script>
