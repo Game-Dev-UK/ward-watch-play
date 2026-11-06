@@ -157,9 +157,9 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 
 /* ---------- sheets ---------- */
 #veil{position:absolute;left:0;right:0;bottom:0;top:118px;background:rgba(11,20,30,.55);
-  opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:8}
+  opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:35}
 #veil.on{opacity:1}
-.sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;max-height:78%;display:flex;flex-direction:column;
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:40;max-height:78%;display:flex;flex-direction:column;
   background:var(--paper);border-top:3px solid var(--ink);border-radius:14px 14px 0 0;
   box-shadow:0 -14px 34px rgba(5,11,18,.45);opacity:0;visibility:hidden;min-height:44%;
   transform:translateY(104%);
@@ -255,7 +255,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 #b3d{position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:4;
   font:700 11px/1 var(--sans);letter-spacing:.09em;color:#F6E7CB;
   background:rgba(226,160,60,.16);border:1px solid rgba(226,160,60,.55);
-  border-radius:4px;padding:8px 9px;cursor:pointer}
+  border-radius:4px;padding:8px 9px;min-height:44px;min-width:44px;cursor:pointer}
 #b3d:active{background:rgba(226,160,60,.32)}
 #v3d{position:absolute;inset:0;z-index:30;display:none;flex-direction:column;
   background:radial-gradient(120% 80% at 50% 8%,#172934 0%,#08111A 72%);color:#F2E7D3}
@@ -267,7 +267,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .v3d-top .sp{flex:1}
 .v3d-x{font:700 11px/1 var(--sans);color:#F2E7D3;background:rgba(242,231,211,.08);
   border:1px solid rgba(242,231,211,.22);border-radius:5px;padding:9px 10px;
-  min-height:38px;cursor:pointer}
+  min-height:44px;cursor:pointer}
 .v3d-x:active{background:rgba(242,231,211,.18)}
 .v3d-x.on{background:#E2A03C;color:#0E1923;border-color:#E2A03C}
 .scene{flex:1 1 auto;position:relative;overflow:hidden;touch-action:none;min-height:0}
@@ -275,8 +275,16 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .lvl-tabs{flex:0 0 auto;display:flex;gap:6px;padding:6px 11px 4px}
 .lvl-tabs button{flex:1;font:700 10.5px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;
   color:#9DB0B8;background:rgba(242,231,211,.05);border:1px solid rgba(242,231,211,.16);
-  border-radius:4px;padding:10px 4px;min-height:40px;cursor:pointer}
+  border-radius:4px;padding:10px 4px;min-height:44px;cursor:pointer}
 .lvl-tabs button.on{color:#0E1923;background:#E2A03C;border-color:#E2A03C}
+.v3d-bar{flex:0 0 auto;display:flex;gap:6px;padding:6px 11px 4px;flex-wrap:wrap}
+.v3d-bar button{font:700 10.5px/1 var(--sans);letter-spacing:.05em;text-transform:uppercase;
+  color:#F2E7D3;background:rgba(242,231,211,.07);border:1px solid rgba(242,231,211,.2);
+  border-radius:4px;padding:9px 8px;min-height:44px;cursor:pointer;flex:1 1 0}
+.v3d-bar button:active{background:rgba(242,231,211,.18)}
+.v3d-bar .v3d-main{color:#0E1923;background:#E2A03C;border-color:#E2A03C}
+.v3d-step{flex:0 0 auto;padding:2px 11px 8px;font:600 10.5px/1.4 var(--sans);color:#C9D6D0}
+.v3d-step b{display:block;font:800 11px/1.3 var(--sans);color:#F2E7D3;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
 .v3d-hint{flex:0 0 auto;padding:2px 11px 10px;font:600 10px/1.4 var(--sans);color:#8FA2AA}
 .pal{flex:0 0 auto;display:flex;gap:5px;padding:6px 11px 11px;overflow-x:auto}
 .pal[hidden]{display:none}
@@ -350,12 +358,21 @@ button .ic+*{vertical-align:inherit}
       <div><h2 id="v3d-title">Marlow Ward</h2><div class="sub" id="v3d-sub">Three levels · tap a room to lay it out</div></div>
       <div class="sp"></div>
       <button class="v3d-x" id="v3d-explode">Explode</button>
+      <button class="v3d-x" id="v3d-back" hidden>Back to ward</button>
       <button class="v3d-x" id="v3d-x" aria-label="Close the 3D view">Close</button>
     </div>
     <div class="scene"></div>
     <div class="lvl-tabs" id="v3d-tabs">
       <button data-lvl="0" class="on">Ground</button><button data-lvl="1">Level 1</button><button data-lvl="2">Level 2</button>
     </div>
+    <div class="v3d-bar" id="v3d-bar">
+      <button class="v3d-main" id="v3d-main" data-a="walk">Walk the round</button>
+      <button data-a="build">Build</button>
+      <button data-a="roster">Roster</button>
+      <button data-a="chain">Chain</button>
+      <button data-a="report">Report</button>
+    </div>
+    <div class="v3d-step" id="v3d-step"><b id="v3d-step-title"></b><span id="v3d-step-line"></span></div>
     <div class="pal" id="v3d-pal" hidden></div>
     <div class="v3d-hint" id="v3d-hint">Drag to orbit. Pinch or scroll to zoom. Tap a room to open its plan.</div>
   </div>
@@ -1622,12 +1639,17 @@ function renderPrompt(){
   var line=STEPTXT[S.act-1][1];
   el("p-line").textContent=S.note?S.note:line;
   el("p-line").className=S.note?"":"";
+  var t3st=el("v3d-step-title"),t3sl=el("v3d-step-line");
+  if(t3st)t3st.textContent=STEPTXT[S.act-1][0];
+  if(t3sl)t3sl.textContent=S.note?S.note:line;
 }
 function renderBar(){
   var b=el("b-main"),l=mainLabel();
   b.textContent=l;
   b.className="dsp";
   b.setAttribute("data-a",(S.signed||S.resultHTML)?"nextVisit":(S.act>=11?"signOff":(S.pending?(S.callOpen?"walk":"opencall"):"walk")));
+  var b3=el("v3d-main");
+  if(b3){b3.textContent=l;b3.setAttribute("data-a",b.getAttribute("data-a"));}
 }
 function render(){
   renderStrip();renderPrompt();renderBar();renderWard();renderSheet();renderCallBox();
@@ -1749,7 +1771,7 @@ function roomHTML(slot){
     var q=patientById(r.busy);
     if(q)h+='<div class="card"><h3>In the room now</h3><p>'+esc(shortName(q))+' · '+esc(q.cond)+' · '+r.busyLeft+' acts of treatment left.</p></div>';
   }
-  h+='<div class="card"><h3>Slot '+(slot+1)+'</h3><p>'+journeyActs(slot)+' act from the ward door. Distance is what the queue pays for.</p>'+
+  h+='<div class="card"><h3>Slot '+(slot+1)+'</h3><p>'+journeyActs(slot)+' steps from the ward door. The farther a room sits from the door, the more time a patient spends walking to it, and that time is what slows the queue.</p>'+
     '<button class="alt" data-a="demolish" data-arg="'+slot+'">'+(S.confirm===slot?"Confirm: clear slot "+(slot+1)+" for "+money(Math.round(d.cost*0.8)):"Clear this room for "+money(Math.round(d.cost*0.8)))+'</button></div>';
   return wrap(head,h,"Back to the ward");
 }
@@ -1814,7 +1836,7 @@ function buildHTML(){
   var h="",i,slots=[],head=headHTML("The build sheet",money(S.cash)+" to spend");
   for(i=0;i<6;i++)if(!S.rooms[i].t)slots.push(i);
   h+='<div class="card"><h3>'+(slots.length?"Open slots: "+slots.map(function(n){return n+1;}).join(", "):"The ward is full")+'</h3>'+
-    '<p>Rooms go in an open slot. Distance from the door is what a patient pays for it in acts.</p>'+
+    '<p>Rooms go in an open slot. A room far from the door means patients walk farther, which costs time.</p>'+
     (S.standing>=62?'<p>The standing grade has brought one more room onto the sheet: the coat room.</p>':'')+'</div>';
   for(i=0;i<ROMS.length;i++){
     var d=ROMS[i];
@@ -2689,6 +2711,14 @@ function t3floor(f){
     var ig=new THREE.Group();ig.position.set(cx,3,cz);ig.userData={f:f,i:i};g.add(ig);
     t3items(ig,f,i);
     if(f===0){
+      var pg=new THREE.Group();pg.position.set(cx,3,cz+W3.cd/2-10);
+      var pb=boxMesh(6,14,6,0x7FC0D0);pb.position.set(0,7,0);pg.add(pb);
+      var ph=boxMesh(5,5,5,0xD8BB99);ph.position.set(0,16,0);pg.add(ph);
+      pg.visible=false;
+      room.userData.patient=pg;
+      g.add(pg);
+    }
+    if(f===0){
       var st=S.rooms[i]&&S.rooms[i].t?stateOf(i):null;
       if(st&&st.label!=="Empty"){
         var per=boxMesh(7,22,7,0x3E5B52);per.position.set(cx+W3.cw/2-13,12,cz+W3.cd/2-13);add(per);
@@ -2793,11 +2823,24 @@ function t3sync(){
     T3.lift.scale.y=k;T3.lift.position.y=h0*k/2;
   }
   t3palette();
+  // Patient figures: show a patient in any ground-floor room that is currently in use
+  if(!T3.editor){
+    var g0=T3.floors[0];
+    for(i=0;i<g0.userData.rooms.length;i++){
+      var rm=g0.userData.rooms[i];
+      if(rm.userData&&rm.userData.patient){
+        var st0=S.rooms[i]?stateOf(i):null;
+        var inUse=!!(st0&&st0.label==="Working");
+        rm.userData.patient.visible=inUse&&(T3.level===0||!!T3.expo);
+      }
+    }
+  }
   if(!T3.editor){
     var tt=document.getElementById("v3d-title"),ss=document.getElementById("v3d-sub"),hh=document.getElementById("v3d-hint");
     if(tt)tt.textContent="Marlow Ward";
-    if(ss)ss.textContent="Three levels · tap a room to lay it out";
+    if(ss)ss.textContent="Three levels · all game functions work from here";
     if(hh)hh.textContent="Drag to orbit. Pinch or scroll to zoom. Tap a room to open its plan.";
+    var bbn=document.getElementById("v3d-back");if(bbn)bbn.hidden=true;
   }
   t3camera();
 }
@@ -2833,6 +2876,7 @@ function t3palette(){
   document.getElementById("v3d-title").textContent=roomName3(T3.editor[0],T3.editor[1]);
   document.getElementById("v3d-sub").textContent="Level "+(T3.editor[0]===0?"ground":"one above")+" · "+bedsIn(T3.editor[0],T3.editor[1])+" beds · tap a square to place";
   document.getElementById("v3d-hint").textContent="Pick a piece, then tap the grid. Tap a placed piece to take it away.";
+  var bb=document.getElementById("v3d-back");if(bb)bb.hidden=false;
 }
 function t3camera(){
   var tgtY=60,dist=T3.dist,el=T3.el;
@@ -2840,7 +2884,7 @@ function t3camera(){
     var g=T3.floors[T3.editor[0]];
     var rm=g.userData.rooms[T3.editor[1]];
     T3._tgt=new THREE.Vector3(rm.userData.cx,g.position.y+18,rm.userData.cz);
-    dist=300;el=Math.max(el,.85);
+    dist=Math.max(180,Math.min(700,T3.dist||300));el=Math.max(el,.85);
   }else{
     T3._tgt=new THREE.Vector3(0,T3.level*W3.fl*(T3.expo?1.55:1)+60,0);
   }
@@ -2853,7 +2897,7 @@ function t3open(){
   if(t3init()){setTimeout(function(){t3resize();t3sync();t3loop();},0);}
 }
 function t3close(){
-  T3.open=0;T3.editor=null;
+  T3.open=0;T3.editor=null;T3.dist=560;T3.el=.62;
   document.getElementById("v3d").className="";
   document.getElementById("v3d-pal").hidden=true;
 }
@@ -2928,7 +2972,7 @@ function t3pick(ev){
   if(h){T3.level=h.object.userData.f;t3editor(h.object.userData.f,h.object.userData.i);}
 }
 function t3editor(f,i){
-  T3.editor=[f,i];T3.level=f;
+  T3.editor=[f,i];T3.level=f;T3.dist=300;T3.el=Math.max(T3.el||.62,.85);
   t3sync();
 }
 function t3place(gx,gy){
@@ -2979,6 +3023,7 @@ function t3events(){
     var t=e.target;
     if(t.id==="b3d"){t3open();return;}
     if(t.id==="v3d-x"){t3close();return;}
+    if(t.id==="v3d-back"){T3.editor=null;T3.dist=560;T3.el=.62;t3sync();return;}
     if(t.id==="v3d-explode"){T3.expo=T3.expo?0:1;t3sync();return;}
     if(t.id==="t3done"){T3.editor=null;T3.dist=560;T3.el=.62;t3sync();return;}
     if(t.closest&&t.closest("#v3d-tabs")&&t.getAttribute("data-lvl")!==null){
