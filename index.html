@@ -193,6 +193,15 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .card .tag.need{background:var(--amber);color:#221403}
 .card .tag.block{background:var(--red);color:#ECE1DC}
 .card .tag.ok{background:var(--teal-wash);color:var(--teal-d)}
+.card.saycard{padding:2px 12px}
+.say{padding:9px 0;border-top:1px solid var(--edge)}
+.say:first-child{border-top:0}
+.say .who{display:flex;gap:7px;align-items:baseline;flex-wrap:wrap}
+.say .who b{font-family:var(--disp);font-size:14px;font-weight:600;color:var(--ink)}
+.say .who span{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--faint)}
+.say p{margin:3px 0 0;font-size:12.5px;color:var(--ink2);line-height:1.45}
+.say.bad{border-left:3px solid var(--red);padding-left:9px;margin-left:-3px}
+.say.bad .who b{color:var(--red-d)}
 .card button,.wide{display:block;width:100%;min-height:46px;margin-top:8px;border-radius:4px;
   background:linear-gradient(180deg,#357669,#2A6157);color:#E7DDCB;border:1px solid var(--teal-d);
   font-size:12.5px;font-weight:600;letter-spacing:.02em;padding:6px 8px;line-height:1.25}
@@ -513,7 +522,7 @@ function freshWard(){
   return {cash:1650,day:1,visit:1,acts:0,clock:0,load:0,act:1,actWas:1,peak:0,standing:0,grade:0,graded:0,
     register:[],unlocks:["bay-four"],rooms:rooms,staff:st,patients:[],treated:0,wrongKit:0,deferred:0,
     slots:[0,0],
-    seen:0,misplace:0,snag:0,handover:"",visitor:"",visited:0,report:[],away:0,awayShifts:0,
+    seen:0,misplace:0,snag:0,handover:"",visitor:"",visited:0,report:[],log:[],away:0,awayShifts:0,
     pending:null,callOpen:0,choice:"",problems:[],lastSeen:Date.now(),sound:0,motion:1,haptics:0,
     scale:1,strip:"load",sort:"role",done:0,loopStarted:0,sheet:"",with:{},note:"",rename:0};
 }
@@ -570,7 +579,8 @@ function save(){
       treated:S.treated,wrongKit:S.wrongKit,deferred:S.deferred,seen:S.seen,misplace:S.misplace,snag:S.snag,
       register:S.register.slice(-40),unlocks:S.unlocks.slice(),rooms:S.rooms,staff:S.staff,patients:S.patients,
       sound:S.sound,motion:S.motion,haptics:S.haptics,scale:S.scale,strip:S.strip,sort:S.sort,
-      away:S.away,lastSeen:Date.now(),report:S.report.slice(0,8),pending:S.pending,handover:S.handover};
+      away:S.away,lastSeen:Date.now(),report:S.report.slice(0,6),log:(S.log||[]).slice(-60),
+      pending:S.pending,handover:S.handover};
     localStorage.setItem(SAVE_KEY,JSON.stringify(t));
   }catch(e){}
 }
@@ -594,6 +604,7 @@ function load(){
     S.scale=t.scale||1;S.strip=t.strip||"load";S.sort=t.sort||"role";
     S.pending=t.pending||null;S.callOpen=0;S.handover=t.handover||"";
     if(t.report)S.report=t.report;
+    if(t.log&&t.log.length)S.log=t.log; else S.log=[];
     var hours=t.lastSeen?(Date.now()-t.lastSeen)/3600000:0;
     S.away=Math.max(0,t.away||0)+ (hours>0.05?hours:0);
     return !!S.away;
@@ -1095,6 +1106,7 @@ function arrivals(){
   p.st="queue";
   p.why=doorStaffed()?"":"door";
   S.patients.push(p);
+  wl("arrive",{p:shortName(p),cond:p.cond,pay:p.pay});
   if(S.acts<6)S.note="A patient has come through the ward door.";
 }
 function triageSlot(){
@@ -1118,6 +1130,7 @@ function moveQueue(){
   var p=q[0];
   p.st="bay";p.room=b.slot;p.bed=b.bed;p.wait=0;p.why="";p.ready=0;
   S.seen++;
+  wl("seen",{p:shortName(p),cond:p.cond,slot:b.slot});
 }
 function bayWait(slot){
   var t=triageSlot();
@@ -1187,6 +1200,7 @@ function finishCase(p){
   }
   S.cash+=pay;
   S.lastPay=pay;
+  wl("treat",{p:shortName(p),cond:p.cond,pay:pay,good:good?1:0});
   S.note=note;
   p.st=roomsOf("lounge").length?"lounge":"discharge";
   p.room=roomsOf("lounge").length?roomsOf("lounge")[0]:-1;p.wait=0;p.treated=1;
@@ -1327,7 +1341,9 @@ function answerCall(choice){
     if(c.t==="The card does not match the patient"){S.cardCall=2;}
     if(c.t==="Someone has moved the scanner"){S.cardCall=2;}
     st.note="was told to carry on: "+c.t.toLowerCase();
+    if(c.t==="I am not doing that room")wl("refuse",{id:st.id,who:st.first,ct:c.t});
   }
+  wl(choice?"defer":"answer",{id:st.id,who:st.first,role:st.role,ct:c.t});
   S.pending=null;
   S.note=shortWho(st.id)+": "+a.l+".";
   return 1;
@@ -1381,6 +1397,7 @@ function widenKit(quiet){
   room.door=110;room.blocked=0;room.fitted=1;room.kitIn="";
   S.snagFixed=(S.snagFixed||0)+1;S.blockedTiles=0;
   if(!quiet)S.note="The treatment room door is 110cm and the scanner is in.";
+  wl("widen",{cost:0});
   return 1;
 }
 function visitorStep(){
@@ -1498,6 +1515,7 @@ function signOff(){
   standingUnlock();
   S.note="Visit signed off: grade "+g+".";
   S.act=12;
+  S.report=reportLines();
   save();
   return 1;
 }
@@ -1513,6 +1531,7 @@ function nextVisit(){
   S.treated=0;S.wrongKit=0;S.deferred=0;S.seen=0;S.misplace=0;S.snag=0;S.snagFixed=0;
   S.swapPair=null;S.cardCall=0;S.calls=0;S.lastCall=0;S.looked=0;S.readAll=0;S.moved=0;S.leftOrder=0;
   S.deferJune=0;S.visited=0;S.act10At=0;S.sixAt=0;S.peak=0;S.done=0;S.actWas=0;S.act=1;
+  S.report=[];S.log=[];
   for(i=S.patients.length-1;i>=0;i--){p=S.patients[i];if(p.st!=="bay"&&p.st!=="treat"&&p.st!=="lounge"&&p.st!=="day")S.patients.splice(i,1);}
   for(i=0;i<6;i++){S.rooms[i].busy=0;S.rooms[i].busyLeft=0;}
   save();
@@ -1521,7 +1540,7 @@ function nextVisit(){
 /* ---- the absence tick, which pays money and writes the report ---- */
 function awayTick(hours){
   if(hours<0.5)return 0;
-  var shifts=Math.min(6,Math.floor(hours/8)),pay=0,i,st,lines=[],kind;
+  var shifts=Math.min(6,Math.floor(hours/8)),pay=0,i,st;
   if(shifts<1)shifts=1;
   pay=shifts*Math.round(90+S.standing*1.7);
   S.cash+=pay;
@@ -1531,23 +1550,13 @@ function awayTick(hours){
     if(rnd()<0.5)moodUp(st);else if(rnd()<0.4)moodDown(st);
     st.at=-1;st.tired=0;
   }
-  lines.push("You were away for "+shifts+(shifts===1?" shift.":" shifts."));
-  lines.push("The ward carried on and paid in "+money(pay)+".");
-  for(i=0;i<3;i++){
-    st=S.staff[Math.floor(rnd()*S.staff.length)];
-    kind=st.mood==="Steady"||st.mood==="Brisk"?"good":(st.mood==="Flat"?"flat":"bad");
-    var pool=[],k;
-    for(k=0;k<REPORTS.length;k++)if(REPORTS[k].t===kind)pool=REPORTS[k].l;
-    var line=pool[Math.floor(rnd()*pool.length)];
-    lines.push(line.replace(/\{who\}/g,st.first).replace(/\{n\}/g,String(ri(2,9))).replace(/\{room\}/g,"the bays"));
-    if(rnd()<0.4)bumpTrait(st,st.mood==="Steady"?"thorough":"unhurried");
-  }
+  wl("away",{shifts:shifts,pay:pay});
   S.register.push({day:S.day,visit:S.visit,grade:S.standing,treated:0,wrongKit:0,deferred:0,blocked:0,
     note:shifts+" shift"+(shifts===1?"":"s")+" away, "+money(pay)+" paid in",away:shifts});
   if(S.register.length>40)S.register.shift();
-  S.report=lines;
+  S.report=reportLines();
   S.away=0;
-  S.note="The ward has carried on without you.";
+  S.note="The ward ran without you. The report is on the desk.";
   save();
   return 1;
 }
@@ -1894,10 +1903,188 @@ function roomsNeedingStaff(){
   for(i=0;i<6;i++)if(S.rooms[i].t&&needsStaff(i))o.push(i);
   return o;
 }
+/* ---- the visit, written down as it happens ---- */
+var BADTRAITS=["hopeless with numbers","frightened of the equipment","forgetful","stubborn","unhurried"];
+var BADTAIL={
+ kit:{"hopeless with numbers":"I said those numbers would not hold. They did not hold.",
+      "frightened of the equipment":"I will not put my hands inside that scanner and I will not pretend otherwise.",
+      "forgetful":"I meant to take the card back to the store. The round took me the other way.",
+      "stubborn":"I read the card the way I was taught and I would read it that way again.",
+      "unhurried":"We found it at the end of the shift, which is when we always find it."},
+ left:{"hopeless with numbers":"I could not tell you how many are still out there. That is on me as much as on the door.",
+      "frightened of the equipment":"I will not take a case I have not been shown how to take, so they waited.",
+      "forgetful":"I was going back for them. I went back for the cards instead.",
+      "stubborn":"They were not mine at the change of shift and I said so.",
+      "unhurried":"They will keep. That is what I told myself, and I was wrong."},
+ defer:{"hopeless with numbers":"You told me to carry on and I carried on. Neither of us did the sums.",
+      "frightened of the equipment":"I was not going to be the one who stopped the round.",
+      "forgetful":"I forgot I had even asked. It went quiet and I let it.",
+      "stubborn":"I said my piece once. I am not going to say it twice.",
+      "unhurried":"It could wait until the end of the shift. It did wait."},
+ refuse:{"hopeless with numbers":"That room's numbers never worked. Somebody else can have it.",
+      "frightened of the equipment":"There is kit in that room I have not been trained on. I am not going in.",
+      "forgetful":"I cannot remember what I was told about that room, so I am not doing it.",
+      "stubborn":"I said I am not doing that room and I have not changed my mind.",
+      "unhurried":"Somebody will get to it. It was not going to be me today."},
+ float:{"hopeless with numbers":"I have counted it three times and it comes out the same every time. That is the problem.",
+      "frightened of the equipment":"One more broken thing and we buy nothing this month.",
+      "forgetful":"There was a bill I meant to query. I have queried it now, too late.",
+      "stubborn":"I will not go cap in hand to the trust for a ward this size.",
+      "unhurried":"The money comes back round. It always comes back round."}
+};
+function wl(k,o){
+  if(!S.log)S.log=[];
+  var e={k:k,a:S.acts,v:S.visit,d:S.day},q;
+  if(o)for(q in o)if(o.hasOwnProperty(q))e[q]=o[q];
+  S.log.push(e);
+  if(S.log.length>90)S.log.splice(0,S.log.length-90);
+  return e;
+}
+function badTrait(st){
+  var i;
+  if(!st||!st.traits)return "";
+  for(i=0;i<st.traits.length;i++)if(BADTRAITS.indexOf(st.traits[i].n)>=0)return st.traits[i].n;
+  return st.traits[0].n;
+}
+function staffFor(roles){
+  var i,k;
+  for(k=0;k<roles.length;k++)for(i=0;i<S.staff.length;i++)if(S.staff[i].role===roles[k])return S.staff[i];
+  return S.staff[0];
+}
+function badTail(st,k){
+  var t=badTrait(st),m=BADTAIL[k];
+  return (m&&m[t])?m[t]:"I have written it up as it happened, which is the least the ward is owed.";
+}
+/* Three to six lines, each in the voice of a named member of staff, built from
+   the events the tick wrote down. Bad news is spoken, not summarised. */
+function reportLines(){
+  var out=[],L=S.log||[],i,j,e,st,txt,away=null,treats=[],wrong=[],lastBuild=null,refuse=null,defer=null,seens=0,used={};
+  function altStaff(s){
+    var k,pref=[];
+    for(k=0;k<S.staff.length;k++)if(!used[S.staff[k].id])pref.push(S.staff[k]);
+    if(!pref.length)return s;
+    for(k=0;k<pref.length;k++)if(pref[k].role===s.role)return pref[k];
+    return pref[0];
+  }
+  function add(s,t,isBad,tag){
+    if(!s||!t)return;
+    if(used[s.id])s=altStaff(s);
+    used[s.id]=1;
+    out.push({who:s.first+" "+s.last,role:s.role||"on the ward",text:t,bad:isBad?1:0,tag:tag||""});
+  }
+  for(i=0;i<L.length;i++){
+    e=L[i];
+    if(e.k==="away"){away=e;continue;}
+    if(e.v!==S.visit)continue;
+    if(e.k==="treat"){(e.good?treats:wrong).push(e);}
+    else if(e.k==="seen")seens++;
+    else if(e.k==="build"){lastBuild=e;}
+    else if(e.k==="refuse"){refuse=e;}
+    else if(e.k==="defer"){defer=e;}
+  }
+  /* 1. the shifts nobody saw */
+  if(away&&away.shifts){
+    st=staffFor(["senior nurse","nurse"]);
+    add(st,"I ran "+away.shifts+(away.shifts===1?" shift":" shifts")+" while you were gone and put "+
+      money(away.pay)+" in the drawer. We were short for most of it, and that is not a complaint, it is the count.",0,"away");
+  }
+  /* 2. the cases that came off the ward */
+  if(treats.length){
+    st=staffFor(["doctor","nurse"]);
+    var take=0,cond="";
+    for(j=0;j<treats.length;j++){take+=treats[j].pay;if(!cond&&treats[j].cond)cond=treats[j].cond;}
+    add(st,treats.length+(treats.length===1?" case came":" cases came")+" off the ward and "+money(take)+
+      " came in behind them."+(cond?(" The "+cond+" case held the treatment room longest."):""),0,"treat");
+  }
+  /* 3. the wrong card, which never reads well */
+  if(wrong.length){
+    st=staffFor(["nurse","porter"]);
+    for(i=0;i<S.staff.length;i++)if(badTrait(S.staff[i])==="frightened of the equipment"){st=S.staff[i];break;}
+    var lost=0;
+    for(j=0;j<wrong.length;j++)lost+=wrong[j].pay;
+    add(st,"A case came off the wrong card and the ward was paid half for it: "+money(lost)+
+      " where it should have been "+money(lost*2)+". "+badTail(st,"kit"),1,"kit");
+  }
+  /* 4. who is still on the ward */
+  var unseen=0,queued=0;
+  for(i=0;i<S.patients.length;i++){
+    var p=S.patients[i];
+    if(p.st==="bay"&&p.why==="seen")unseen++;
+    if((p.st==="queue"||p.st==="arriving")&&S.signed)queued++;
+  }
+  if(unseen+queued){
+    st=staffFor(["nurse","senior nurse"]);
+    var tot=unseen+queued;
+    add(st,tot+(tot===1?" patient is":" patients are")+" still on the ward untreated"+
+      (queued?(" and "+queued+" of them never got past the corridor"):"")+". "+badTail(st,"left"),1,"left");
+  }
+  /* 5. the room somebody would not do */
+  if(refuse){
+    st=staffById(refuse.id)||staffFor(["nurse"]);
+    add(st,"I refused a room and I am not going to dress it up. "+badTail(st,"refuse"),1,"refuse");
+  }
+  /* 6. a call you told to carry on */
+  if(defer){
+    st=staffById(defer.id)||staffFor(["nurse"]);
+    add(st,"You told me to carry on: \u201c"+String(defer.ct||"it")+"\u201d. "+badTail(st,"defer"),1,"defer");
+  }
+  /* 7. what went up and what it cost */
+  if(lastBuild){
+    st=staffFor(["admin","senior nurse"]);
+    add(st,"The "+String(lastBuild.room).toLowerCase()+" is in slot "+lastBuild.slot+" and it cost "+
+      money(lastBuild.cost)+". I signed for it, so the money is spent whether it earns or not.",0,"build");
+  }
+  /* 8. the float, when it is thin */
+  if(S.cash<450){
+    st=staffFor(["admin","senior nurse"]);
+    add(st,"The float is down to "+money(S.cash)+". "+badTail(st,"float"),1,"float");
+  }
+  /* always three voices: the ward as it actually stands */
+  if(out.length<3){
+    var frayed=null;
+    for(i=0;i<S.staff.length;i++)if(S.staff[i].mood==="Frayed"||S.staff[i].mood==="Done"){frayed=S.staff[i];break;}
+    if(frayed)add(frayed,"I have had a day of it and I am not going to stand here and say I am fine, because I am not.",1,"mood");
+  }
+  if(out.length<3){
+    st=staffFor(["senior nurse"]);
+    add(st,"Six rooms, "+bayBeds().length+" beds and "+money(S.cash)+" in the drawer. That is the ward you have taken on.",0,"ward");
+  }
+  if(out.length<3){
+    st=staffFor(["porter"]);
+    add(st,S.snag?"The scanner is still in the corridor and I am still not lifting it on my own."
+      :"The bays are straight and the trolley is where it should be. Ask me again at the end of the shift.",S.snag?1:0,"porter");
+  }
+  if(out.length<3){
+    st=staffFor(["nurse"]);
+    add(st,"Nothing through the door yet. I have read every card twice and I would rather be busy.",0,"quiet");
+  }
+  /* keep it to six, and never drop the away line or the only bad news */
+  while(out.length>6){
+    var idx=-1;
+    for(i=out.length-1;i>=0;i--)if(out[i].tag!=="away"&&!out[i].bad){idx=i;break;}
+    if(idx<0)for(i=out.length-1;i>=0;i--)if(out[i].tag!=="away"){idx=i;break;}
+    if(idx<0)idx=out.length-1;
+    out.splice(idx,1);
+  }
+  return out;
+}
+function reportText(){
+  var l=reportLines(),o=[],i;
+  for(i=0;i<l.length;i++)o.push(l[i].who+": "+l[i].text);
+  return o;
+}
 function reportHTML(){
-  var h="",i,head=headHTML("The shift report","what happened while you were away");
-  h+='<div class="card want"><h3>The ward carried on</h3>';
-  for(i=0;i<S.report.length;i++)h+='<p>'+esc(S.report[i])+'</p>';
+  var lines=(S.report&&S.report.length&&S.report[0]&&S.report[0].who)?S.report:reportLines(),i,h;
+  var head=headHTML("The shift report","day "+S.day+" · visit "+S.visit+" · act "+
+    Math.max(1,Math.min(12,S.acts))+" of 12");
+  h='<div class="card want"><h3>'+lines.length+' voices off the ward</h3>'+
+    '<p>Written by the people who did the work, in the order the shift went. Nothing here is a summary.</p></div>';
+  h+='<div class="card saycard">';
+  for(i=0;i<lines.length;i++){
+    var l=lines[i];
+    h+='<div class="say'+(l.bad?' bad':'')+'"><div class="who"><b>'+esc(l.who)+'</b><span>'+
+      esc(l.role)+'</span></div><p>'+esc(l.text)+'</p></div>';
+  }
   h+='</div>';
   h+=filesHTML();
   return wrap(head,h,"Take the ward over","close");
@@ -2113,6 +2300,7 @@ function placeRoom(slot,type){
   if(type==="treat"&&S.rooms[slot].door<90){/* the kit lands at the snag, not at the build */}
   S.pick="";
   S.note="The "+d.n+" is in slot "+(slot+1)+". It cost "+money(d.cost)+".";
+  wl("build",{room:d.n,slot:slot+1,cost:d.cost});
   return 1;
 }
 function slotWanted(arg){
@@ -2188,6 +2376,7 @@ function hire(role){
   S.cash-=cost;
   S.staff.push(newStaff(role));
   S.note="Somebody new is on the books.";
+  wl("hire",{role:role,cost:cost});
   return 1;
 }
 function moveInQueue(id,dir){
@@ -3038,6 +3227,8 @@ function t3events(){
 t3events();
 // 3D ward is the main view: open it on load.
 try{t3open();}catch(e){}
+// On return after an absence the shift report is act 1 and comes up first.
+try{if(S.report&&S.report.length&&S.report[0]&&S.report[0].who){S.act=1;openSheet("sh-report");}}catch(e){}
 decorateIcons();
 new MutationObserver(iconSweep).observe(document.getElementById("phone"),{childList:true,subtree:true});
 </script>
