@@ -54,7 +54,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   .bar button{min-height:50px}
   .platefoot{display:none}
 }
-#phone{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;background:var(--paper);
+#phone{position:absolute;inset:0;display:flex;flex-direction:column;overflow:clip;background:var(--paper);
   border:1px solid #050B12;box-shadow:0 0 0 5px #101B26,0 0 0 6px #050B12,0 26px 60px rgba(0,0,0,.6)}
 #phone:after{content:"";position:absolute;inset:0;background-image:var(--grain);background-size:120px 120px;
   opacity:.035;pointer-events:none;z-index:30;mix-blend-mode:multiply}
@@ -82,6 +82,48 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .meta #s-grade{display:inline-block;padding:3px 8px 3px;border-radius:3px;
   background:#1E4A44;border:1px solid #2F6E63;color:#EAF4EF;letter-spacing:.10em}
 .meta b{color:#EAE4D7;font-weight:600}
+#b-help{position:relative;z-index:56;flex:0 0 auto;margin-left:auto;min-width:44px;min-height:44px;padding:0 13px 0 9px;border-radius:4px;
+  display:flex;align-items:center;gap:7px;background:rgba(226,160,60,.14);
+  border:1px solid rgba(226,160,60,.62);color:#F6EAD6;font-size:11.5px;font-weight:700;
+  letter-spacing:.10em;text-transform:uppercase;line-height:1}
+#b-help:active{background:rgba(226,160,60,.34)}
+#b-help i{flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  width:19px;height:19px;border-radius:50%;border:1.5px solid #E2A03C;color:#E2A03C;
+  font-style:normal;font-size:12px;font-weight:700;letter-spacing:0}
+
+/* ---------- the first-run card: how to play ---------- */
+#howto{position:absolute;inset:0;z-index:60;display:none;padding:10px;
+  background:rgba(6,12,19,.88);align-items:center;justify-content:center}
+#howto.on{display:flex}
+.hw-card{position:relative;width:100%;max-width:420px;max-height:100%;overflow:hidden;
+  display:flex;flex-direction:column;
+  background:var(--paper);color:var(--ink);border:2px solid #050B12;border-radius:8px;
+  box-shadow:0 18px 46px rgba(0,0,0,.62),0 0 0 5px #101B26;padding:15px 16px 14px;
+  -webkit-overflow-scrolling:touch}
+.hw-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:none}
+.hw-scroll::-webkit-scrollbar{display:none}
+.hw-card:after{content:"";position:absolute;left:3px;right:3px;bottom:82px;height:26px;
+  background:linear-gradient(rgba(243,237,224,0),var(--paper));pointer-events:none}
+.hw-card h2{margin:0 0 4px;font-family:var(--disp);font-size:20px;font-weight:600;letter-spacing:-.2px;line-height:1.1}
+.hw-lead{margin:0;font-size:13px;line-height:1.38;color:var(--ink2)}
+.hw-card ol{margin:9px 0 0;padding:0;list-style:none;counter-reset:hw}
+.hw-card li{position:relative;counter-increment:hw;margin:0 0 8px;padding-left:28px;
+  font-size:12.5px;line-height:1.4;color:var(--ink2)}
+.hw-card li:before{content:counter(hw);position:absolute;left:0;top:0;width:22px;height:22px;
+  border-radius:50%;background:#13202C;color:#F4EADA;font-size:11.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.hw-card li b{color:var(--ink);font-weight:600}
+.hw-nums{margin:2px 0 0;padding:8px 10px 3px;border-radius:5px;
+  background:rgba(226,160,60,.12);border-left:3px solid var(--amber-d)}
+.hw-nums h3{margin:0 0 6px;font-size:10.5px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:#7A5312}
+.hw-nums p{margin:0 0 5px;font-size:12px;line-height:1.34;color:var(--ink2)}
+.hw-nums p b{color:var(--ink);font-weight:600}
+#howto-start{width:100%;min-height:56px;margin-top:11px;border-radius:5px;
+  background:linear-gradient(180deg,#21384E,#152430);border:1px solid #37505F;
+  color:#F6EEDE;font-family:var(--disp);font-size:17px;font-weight:600;letter-spacing:.01em;
+  box-shadow:0 2px 0 rgba(5,11,18,.6),inset 0 1px 0 rgba(246,238,222,.14),inset 0 -3px 0 var(--amber-d)}
+#howto-start:active{background:#12212D}
 .load{flex:0 0 auto;margin-top:8px;height:16px;background:rgba(242,231,211,.08);
   border:1px solid rgba(242,231,211,.16);border-radius:2px;position:relative;overflow:hidden}
 .load i{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-l));
@@ -116,7 +158,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .plan{box-shadow:0 0 0 1px #050B12,0 0 0 7px #101B26,0 0 0 8px #050B12}
 .plan{position:relative;flex:0 0 auto}
 .hot{position:absolute;inset:0}
-.hot button{position:absolute;background:none;border:2px solid transparent;border-radius:3px;
+.hot button{position:absolute;background:none;border:2px solid rgba(184,122,34,.20);border-radius:3px;
   transition:border-color .15s ease,background .15s ease}
 .hot button:hover{border-color:rgba(184,122,34,.55)}
 .hot button:focus-visible{border-color:var(--amber);background:rgba(226,160,60,.16)}
@@ -209,7 +251,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
 .card button.gilt{background:linear-gradient(180deg,#DFA753,#D68F2C);color:#221403;border-color:var(--amber-d)}
 .card button.warnx{background:linear-gradient(180deg,#C2523C,#A83A26);color:#ECE1DC;border-color:#8A2C1B}
 .rowline{display:flex;gap:6px}
-.rowline button{flex:1 1 0;margin-top:8px}
+.rowline button{flex:1 1 0;margin-top:8px;min-height:44px;padding:10px 12px}
 .hint{font-size:11.5px;color:var(--muted);line-height:1.4}
 .sorts{display:flex;gap:6px}
 .sorts button{flex:1 1 0;min-height:44px;border-radius:4px;border:1px solid var(--edge2);
@@ -278,6 +320,7 @@ button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
   border:1px solid rgba(242,231,211,.22);border-radius:5px;padding:9px 10px;
   min-height:44px;cursor:pointer}
 .v3d-x:active{background:rgba(242,231,211,.18)}
+.v3d-q{min-width:44px;padding:9px 0;font-size:14px}
 .v3d-x.on{background:#E2A03C;color:#0E1923;border-color:#E2A03C}
 .scene{flex:1 1 auto;position:relative;overflow:hidden;touch-action:none;min-height:0}
 .scene canvas{display:block;width:100%;height:100%}
@@ -330,7 +373,7 @@ button .ic+*{vertical-align:inherit}
       <button class="slot" data-a="door" aria-label="Open the ward door and the queue"><span class="k">Queue</span><b id="s-queue" class="num">0</b></button>
       <div class="slot"><span class="k" id="s-thirdk">Load</span><b id="s-third" class="num">0</b></div>
     </div>
-    <div class="meta"><span id="s-grade">Standing new</span></div>
+    <div class="meta"><span id="s-grade">Standing new</span><button id="b-help" data-a="help" aria-label="How to play, opens the instructions"><i aria-hidden="true">?</i><span>How to play</span></button></div>
     <div class="load" id="s-loadwrap"><i id="s-loadfill"></i><span class="lab" id="s-loadlab">LOAD 0</span></div>
   </div>
 
@@ -352,7 +395,7 @@ button .ic+*{vertical-align:inherit}
       <div><svg viewBox="0 0 22 22"><rect x="1" y="4" width="20" height="14" rx="2" fill="#DACDB7" stroke="#13202C" stroke-width="1.2"/><path d="M3 11h16M3 13.6h16" stroke="#3B4A44" stroke-width="2.6" stroke-dasharray="3 2"/></svg><span>Blocked</span></div>
       <div><svg viewBox="0 0 22 22"><rect x="1" y="4" width="20" height="14" rx="2" fill="#ECE7DC" stroke="#BFAE90" stroke-width="1.2" stroke-dasharray="3 2"/></svg><span>Empty</span></div>
     </div>
-    <div class="platefoot"><span>Ward plan</span><i></i><span id="pf-scale">Six rooms</span></div>
+    <div class="platefoot"><span>Ward plan</span><i></i><span id="pf-scale">Tap a room</span></div>
   </div>
 
   <div class="bar">
@@ -362,10 +405,36 @@ button .ic+*{vertical-align:inherit}
     <button id="b-chain" class="nb" data-a="chain"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" fill="#2F6E63"/><rect x="12" y="8" width="7" height="12" fill="#85B3A6"/><rect x="12" y="4" width="7" height="3" fill="#E2A03C"/></svg>Chain</button>
   </div>
 
+  <div id="howto" role="dialog" aria-modal="true" aria-labelledby="hw-t">
+    <div class="hw-card">
+      <div class="hw-scroll">
+        <h2 id="hw-t">How to play Ward Watch</h2>
+        <p class="hw-lead">You are running a hospital ward for one day, with twelve small jobs to get through.</p>
+        <ol>
+          <li><b>What you are trying to do.</b> Keep patients seen to, keep staff in the right rooms, and finish with a grade you can live with.</li>
+          <li><b>Read the top of the screen.</b> It shows Act 1 of 12 and then the job for this beat, such as The door or The look, with a line saying what to do. Do that one job and the day moves on to the next of the twelve.</li>
+          <li><b>Start with the big button.</b> Bottom left. It usually says Walk the round, and each tap reads every room. When it shows a name, such as Answer Osric, tap it to open that staff call and choose a reply.</li>
+          <li><b>Rooms, the door and the 3D view.</b> Tap a room on the plan in the middle to open its card. Tap the Queue number at the top left to open the door, where you can take the next person off the door or leave the order to triage. The 3D button shows all three floors and you drag to turn it. The day is played on the plan.</li>
+          <li><b>The other three buttons.</b> Build puts rooms in the empty slots, Roster posts staff, and Chain holds the register and the settings. Sound stays off until you turn it on there.</li>
+          <li><b>Finish the day.</b> At the sign-off the big button becomes Sign this visit off. Tap it for your grade, then Carry on to the next visit.</li>
+        </ol>
+        <div class="hw-nums">
+          <h3>The numbers at the top</h3>
+          <p><b>Cash</b> is the ward's money. Treatments add, building takes away.</p>
+          <p><b>Queue</b> is the people at the door. Two or fewer is fine, six or more fills the corridor.</p>
+          <p><b>Load</b> is how stretched the ward is. Under 70 is calm, 70 and over turns amber.</p>
+          <p><b>Standing</b> is your average grade out of 100. 80 and up is strong, under 45 is a bad day.</p>
+        </div>
+      </div>
+      <button id="howto-start" data-a="helpStart">Start the day</button>
+    </div>
+  </div>
+
   <div id="v3d">
     <div class="v3d-top">
       <div><h2 id="v3d-title">Marlow Ward</h2><div class="sub" id="v3d-sub">Three levels · tap a room to lay it out</div></div>
       <div class="sp"></div>
+      <button class="v3d-x v3d-q" id="v3d-help" data-a="help" aria-label="How to play, opens the instructions">?</button>
       <button class="v3d-x" id="v3d-explode">Explode</button>
       <button class="v3d-x" id="v3d-back" hidden>Back to ward</button>
       <button class="v3d-x" id="v3d-x" aria-label="Close the 3D view">Close</button>
@@ -1561,7 +1630,32 @@ function awayTick(hours){
   return 1;
 }
 /* ---- the tick ---- */
+/* ---------------- how to play: the card and its button ---------------- */
+var HOWTO_KEY=SAVE_KEY+"-howto-seen";
+function howtoSeen(){try{return localStorage.getItem(HOWTO_KEY)==="1";}catch(e){return false;}}
+function howtoOpen(){var n=el("howto");return !!(n&&(" "+n.className+" ").indexOf(" on ")>=0);}
+function openHowto(){
+  var n=el("howto"),s,b,sc;
+  if(!n)return;
+  n.className="on";
+  s=el("howto-start");if(s)s.textContent=howtoSeen()?"Back to the ward":"Start the day";
+  sc=n.querySelector(".hw-scroll");if(sc)sc.scrollTop=0;
+  b=el("b-help");if(b)b.setAttribute("aria-expanded","true");
+}
+function closeHowto(){
+  var n=el("howto"),b;
+  if(!n)return;
+  n.className="";
+  b=el("b-help");if(b)b.setAttribute("aria-expanded","false");
+  try{localStorage.setItem(HOWTO_KEY,"1");}catch(e){}
+  if(typeof fit==="function")fit();
+}
+function laterCall(){
+  if(howtoOpen()){setTimeout(laterCall,800);return;}
+  if(!S.pending&&!S.signed){raiseCall();S.lastCall=S.acts;S.dirty=1;}
+}
 function tick(dt){
+  if(!S.norender&&howtoOpen())return;
   S.clock+=dt/ACTSECONDS;
   var guard=0;
   while(S.clock>=1&&guard++<50){
@@ -1674,7 +1768,7 @@ function renderCallBox(){
     '<p>'+esc(callText(P.c))+'</p>'+
     '<button class="gilt" data-a="answer" data-arg="0">'+esc(P.c.a.l)+'<span>'+esc(P.c.a.s.replace(/\{who\}/g,shortWho(P.staff)))+'</span></button>'+
     '<button data-a="answer" data-arg="1">'+esc(P.c.b.l)+'<span>'+esc(P.c.b.s.replace(/\{who\}/g,shortWho(P.staff)))+'</span></button>'+
-    '<button data-a="calllater">Not now, keep it on the list<span>the call stays open and the bar keeps the way back to it</span></button>';
+    '<button data-a="callLater">Not now, keep it on the list<span>the call stays open and the bar keeps the way back to it</span></button>';
   m.className="modal on";
 }
 function figIcon(st){
@@ -1741,7 +1835,7 @@ function roomHTML(slot){
   var head=headHTML(roomName(r)+" · slot "+(slot+1),(slot<3?"north side":"south side"));
   if(!r.t){
     h+='<div class="card want"><h3>Open slot</h3><p>Nothing is built here. The build sheet lists what the ward can put in it.</p>'+
-      '<button data-a="buildsheet">Open the build sheet</button></div>';
+      '<button data-a="build">Open the build sheet</button></div>';
     return wrap(head,h,"Back to the ward");
   }
   var tag=st.w==="work"?"ok":(st.w==="wait"||st.w==="block"?"need":"");
@@ -1838,7 +1932,7 @@ function patientHTML(id){
       '<button class="alt" data-a="move" data-arg="'+p.id+'" data-arg2="1">Move down one</button></div></div>';
   }
   if(p.st==="bay"&&p.ready)h+='<div class="card"><h3>Ready for the treatment room</h3>'+
-    '<button data-a="totreat" data-arg="'+p.id+'">Take them to the treatment room by hand</button></div>';
+    '<button data-a="toTreat" data-arg="'+p.id+'">Take them to the treatment room by hand</button></div>';
   return wrap(head,h,"Back to the ward");
 }
 function buildHTML(){
@@ -2236,6 +2330,8 @@ function buzz(ms){
 function act(name,arg,arg2){
   var i,st,n;
   switch(name){
+    case "help":openHowto();break;
+    case "helpStart":closeHowto();break;
     case "walk":walkRound();break;
     case "room":
       n=parseInt(arg,10);
@@ -2645,7 +2741,8 @@ function boot(){
   setTimeout(fit,700);
   requestAnimationFrame(frame);
   if(S.report.length){S.act=1;openSheet("sh-report");}
-  else setTimeout(function(){if(!S.pending&&!S.signed){raiseCall();S.lastCall=S.acts;S.dirty=1;}} ,1200);
+  else setTimeout(laterCall,1200);
+  if(!howtoSeen())setTimeout(openHowto,0);
 }
 boot();
 
@@ -3225,8 +3322,8 @@ function t3events(){
 }
 
 t3events();
-// 3D ward is the main view: open it on load.
-try{t3open();}catch(e){}
+// The plan is the main view: the 3D model is opened from the 3D button on it.
+// Opening the 3D dollhouse on load hid the rooms, the queue and the bar behind it.
 // On return after an absence the shift report is act 1 and comes up first.
 try{if(S.report&&S.report.length&&S.report[0]&&S.report[0].who){S.act=1;openSheet("sh-report");}}catch(e){}
 decorateIcons();
