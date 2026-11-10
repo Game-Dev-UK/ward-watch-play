@@ -722,23 +722,44 @@ function TX(x,y,t,s,f,w,anc){return '<text x="'+x+'" y="'+y+'" font-size="'+s+'"
 /* a shadow thrown down and to the right of whatever stands on the floor */
 function CAST(x,y,w,o){return '<ellipse cx="'+(x+w/2+4)+'" cy="'+y+'" rx="'+(w*0.62)+'" ry="3.4" fill="#13202C" opacity="'+(o||.15)+'"/>';}
 function LEGS(x,y,w,ht,f){return R(x,y,w,ht,f)+R(x+w-3,y,3,ht,f);}
-/* a person: head, body, apron, and a posture that says the mood */
+/* a person, chibi build: dome head wider than the body, two big eyes and a blush.
+   Feet still sit on y=0 so every existing placement in the ward keeps working. */
+var SKIN="#E8C4A2", EYE="#13202C", BLUSH="#F0856E";
 function person(x,y,o){
   var mood=o.mood||"",role=o.role||"",c=o.c||"#2F6E63",cf=o.cf||"#85B3A6",s="";
   var tilt=(mood==="Frayed"?-11:(mood==="Done"?3:0)), lean=(mood==="Brisk"?5:0);
   var sh=(mood==="Flat"||mood==="Done")?1:0, sit=(mood==="Done");
+  var dy=sit?4:0, legH=sit?4:7;
   s+='<g transform="translate('+x+','+y+') rotate('+tilt+') translate('+(lean*-0.6)+',0)">';
-  s+=CAST(-5,-1,20,.2);
-  if(sit){s+=SOL(3,-9,12,7,"#6C7982",1);}
-  s+=LEGS(-4,-9,16,sit?7:11,"#2A3B4A");
-  s+=SOL(-6,-9-sh*1.5-(sit?0:0),17,16-(sit?7:0),c,3);
-  s+=R(-6,-9-sh*1.5-(sit?0:0),17,3,cf,1,.55);
-  if(role==="porter")s+=SOL(3.5,-20-sh*1.5,9,5,"#9AA7A0",1);
-  s+=SOL(-1.5,-26-sh*2,10,9,"#D8BB99",4);
-  s+='<path d="M-1.5,-26 a5,4.5 0 0 1 10,0 l-10,0 z" fill="'+o.hair+'"/>';
-  if(mood==="Brisk")s+=R(9,-17,7,2.6,"#D8BB99",1);
-  if(o.arm!==0)s+=R(-8.4,-7,3.4,9,"#D8BB99",1.4);
-  s+='</g>';
+  s+=CAST(-6,-1,22,.18);
+  s+='<g transform="translate(0,'+dy+')">';
+  /* stubby legs */
+  s+=SOL(-5.4,0-legH,5,legH,"#2A3B4A",2.4)+SOL(0.6,0-legH,5,legH,"#2A3B4A",2.4);
+  /* round little body */
+  s+=SOL(-7,-15+sh*1,14,9.8,c,4.6);
+  s+=R(-7,-13.6+sh*1,14,2.8,cf,1.4,.5);
+  if(role==="porter")s+=SOL(3.6,-16+sh,8,6,"#9AA7A0",2.4);
+  /* arms, chunky and rounded */
+  if(o.arm!==0){
+    if(mood==="Brisk")s+=SOL(6,-22+sh,4.2,8,SKIN,2.1);
+    else s+=SOL(-10.2,-14.4+sh,4.2,7.4,SKIN,2.1);
+    s+=SOL(6,-14.4+sh,4.2,7.4,SKIN,2.1);
+  }
+  /* dome head, wider than the body and sitting straight on the shoulders: the chibi read */
+  var hc=-18.4;
+  s+=SOL(-8.5,-26,17,16.6,SKIN,8.3);
+  s+='<path d="M-8.5,'+(hc-2.6)+' a8.3,8.2 0 0 1 16.6,0 z" fill="'+o.hair+'"/>';
+  s+='<path d="M-8.5,'+(hc-2.6)+' l4.4,0 l-1.3,3 l-3.1,-1.3 z" fill="'+o.hair+'" opacity=".85"/>';
+  /* eyes: two tall ovals with a pin-light */
+  s+='<ellipse cx="-3.2" cy="'+(hc-0.2)+'" rx="2" ry="2.5" fill="'+EYE+'"/>';
+  s+='<ellipse cx="3.2" cy="'+(hc-0.2)+'" rx="2" ry="2.5" fill="'+EYE+'"/>';
+  s+='<circle cx="-3.9" cy="'+(hc-1.1)+'" r="0.72" fill="#FFFFFF" opacity=".9"/>';
+  s+='<circle cx="2.5" cy="'+(hc-1.1)+'" r="0.72" fill="#FFFFFF" opacity=".9"/>';
+  /* blush and a small mouth */
+  s+='<ellipse cx="-5.9" cy="'+(hc+3.3)+'" rx="1.9" ry="1.1" fill="'+BLUSH+'" opacity=".55"/>';
+  s+='<ellipse cx="5.9" cy="'+(hc+3.3)+'" rx="1.9" ry="1.1" fill="'+BLUSH+'" opacity=".55"/>';
+  s+='<path d="M-1.2,'+(hc+3.6)+' q1.2,1.3 2.4,0" stroke="#9C6448" stroke-width="1" fill="none" stroke-linecap="round"/>';
+  s+='</g></g>';
   return s;
 }
 function bedFig(x,y,who){
@@ -752,9 +773,15 @@ function bedFig(x,y,who){
   s+=R(x+28,y+22,26,2,"#85B3A6");s+=R(x+28,y+27,26,1,"#1F5148",null,.6);
   s+=SOL(x+8,y+19,11,8,"#ECECEA",2);
   if(who){
-    s+=SOL(x+10,y+14,9,8,"#D8BB99",3);
-    s+='<path d="M10,'+y+' a4.5,4 0 0 1 9,0 z" fill="'+who.hair+'" transform="translate(0,0)"/>';
-    s+=R(x+9,y+19,11,4,"#DACDB7",1);
+    /* chibi patient: oversized dome head on the pillow, sleeping eyes, a blush */
+    s+=SOL(x+7,y+10,13,12.5,"#E8C4A2",6.4);
+    s+='<path d="M'+(x+7)+','+(y+17)+' a6.4,6.2 0 0 1 12.8,0 z" fill="'+who.hair+'"/>';
+    s+='<path d="M'+(x+10)+','+(y+18.6)+' q1.5,1.3 3,0" stroke="#13202C" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
+    s+='<path d="M'+(x+14.4)+','+(y+18.6)+' q1.5,1.3 3,0" stroke="#13202C" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
+    s+='<ellipse cx="'+(x+9)+'" cy="'+(y+19.8)+'" rx="1.6" ry="0.9" fill="#F0856E" opacity=".5"/>';
+    s+='<ellipse cx="'+(x+18)+'" cy="'+(y+19.8)+'" rx="1.6" ry="0.9" fill="#F0856E" opacity=".5"/>';
+    s+='<path d="M'+(x+12.4)+','+(y+21)+' q1.1,1 2.2,0" stroke="#9C6448" stroke-width=".9" fill="none" stroke-linecap="round"/>';
+    s+=R(x+9,y+22.2,9,3.4,"#DACDB7",1.6);
   }
   s+=R(x+56,y+22,9,13,"#E7DDCB",1)+R(x+54,y+21,5,3,"#E2A03C",1);
   s+=R(x+58,y+25,5,1,"#8C9A93")+R(x+58,y+28,5,1,"#8C9A93")+R(x+58,y+31,5,1,"#8C9A93");
@@ -1777,9 +1804,13 @@ function figIcon(st){
 }
 function personIcon(c,f){
   return '<svg viewBox="0 0 48 48"><ellipse cx="26" cy="45" rx="15" ry="3" fill="#13202C" opacity=".15"/>'+
-   '<rect x="15" y="22" width="4" height="13" fill="#2A3B4A"/><rect x="29" y="22" width="4" height="13" fill="#2A3B4A"/>'+
-   '<rect x="12" y="16" width="25" height="20" rx="5" fill="'+c+'"/><rect x="12" y="16" width="25" height="5" rx="2" fill="'+f+'" opacity=".7"/>'+
-   '<circle cx="24" cy="10" r="7.4" fill="#D8BB99"/><path d="M16.6,10 a7.4,7 0 0 1 14.8,0z" fill="#3B2A1C"/></svg>';
+   '<rect x="16.5" y="30" width="5" height="12" rx="2.5" fill="#2A3B4A"/><rect x="26.5" y="30" width="5" height="12" rx="2.5" fill="#2A3B4A"/>'+
+   '<rect x="13" y="21" width="22" height="16" rx="8" fill="'+c+'"/><rect x="15" y="23.5" width="18" height="4" rx="2" fill="'+f+'" opacity=".6"/>'+
+   '<rect x="10" y="22" width="4" height="10" rx="2" fill="#E8C4A2"/><rect x="34" y="22" width="4" height="10" rx="2" fill="#E8C4A2"/>'+
+   '<circle cx="24" cy="13" r="11" fill="#E8C4A2"/><path d="M13,13 a11,10.5 0 0 1 22,0z" fill="#3B2A1C"/>'+
+   '<ellipse cx="20" cy="14.5" rx="2.2" ry="2.7" fill="#13202C"/><ellipse cx="28" cy="14.5" rx="2.2" ry="2.7" fill="#13202C"/>'+
+   '<circle cx="19.2" cy="13.5" r="0.8" fill="#fff"/><circle cx="27.2" cy="13.5" r="0.8" fill="#fff"/>'+
+   '<ellipse cx="16.6" cy="19" rx="2.1" ry="1.2" fill="#F0856E" opacity=".5"/><ellipse cx="31.4" cy="19" rx="2.1" ry="1.2" fill="#F0856E" opacity=".5"/></svg>';
 }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 /* ---------------- the sheets ---------------- */
@@ -2926,6 +2957,24 @@ function boxMesh(w,h,d,color,opts){
   b.castShadow=false;b.receiveShadow=false;
   return b;
 }
+function ballMesh(r,color,opts){
+  var m=new THREE.MeshStandardMaterial(Object.assign({color:color,roughness:.9,metalness:.02},opts||{}));
+  var b=new THREE.Mesh(new THREE.SphereGeometry(r,18,14),m);
+  b.castShadow=false;b.receiveShadow=false;
+  return b;
+}
+/* chibi doll for the 3D ward: big dome head with two eyes and a blush, small round body */
+function t3chibi(bodyCol,skinCol,hairCol,sc){
+  var g=new THREE.Group(),k=sc||1;
+  var t=ballMesh(1,bodyCol);t.scale.set(5.2*k,5.4*k,4.6*k);t.position.y=5.4*k;g.add(t);
+  var hd=ballMesh(1,skinCol);hd.scale.set(4.9*k,4.7*k,4.5*k);hd.position.y=12.6*k;g.add(hd);
+  var hr=ballMesh(1,hairCol);hr.scale.set(5.0*k,2.9*k,4.6*k);hr.position.y=14.4*k;g.add(hr);
+  var e1=boxMesh(1.1*k,1.5*k,.6*k,0x13202C),e2=boxMesh(1.1*k,1.5*k,.6*k,0x13202C);
+  e1.position.set(-1.75*k,12.7*k,4.05*k);e2.position.set(1.75*k,12.7*k,4.05*k);g.add(e1);g.add(e2);
+  var b1=boxMesh(1.4*k,.8*k,.5*k,0xF0856E),b2=boxMesh(1.4*k,.8*k,.5*k,0xF0856E);
+  b1.position.set(-3.2*k,10.9*k,3.5*k);b2.position.set(3.2*k,10.9*k,3.5*k);g.add(b1);g.add(b2);
+  return g;
+}
 function t3init(){
   if(T3.ready)return true;
   if(typeof THREE==="undefined"){
@@ -2998,8 +3047,7 @@ function t3floor(f){
     t3items(ig,f,i);
     if(f===0){
       var pg=new THREE.Group();pg.position.set(cx,3,cz+W3.cd/2-10);
-      var pb=boxMesh(6,14,6,0x7FC0D0);pb.position.set(0,7,0);pg.add(pb);
-      var ph=boxMesh(5,5,5,0xD8BB99);ph.position.set(0,16,0);pg.add(ph);
+      pg.add(t3chibi(0x7FC0D0,0xE8C4A2,0x3B2A1C,1.05));
       pg.visible=false;
       room.userData.patient=pg;
       g.add(pg);
@@ -3007,8 +3055,8 @@ function t3floor(f){
     if(f===0){
       var st=S.rooms[i]&&S.rooms[i].t?stateOf(i):null;
       if(st&&st.label!=="Empty"){
-        var per=boxMesh(7,22,7,0x3E5B52);per.position.set(cx+W3.cw/2-13,12,cz+W3.cd/2-13);add(per);
-        var head=boxMesh(6,6,6,0xD8BB99);head.position.set(cx+W3.cw/2-13,26,cz+W3.cd/2-13);add(head);
+        var per=t3chibi(0x3E5B52,0xE8C4A2,0x3B2A1C,1.55);
+        per.position.set(cx+W3.cw/2-13,0,cz+W3.cd/2-13);g.add(per);
         // Bedside lamp: warm glow on occupied bays, off when empty
         var lamp=new THREE.PointLight(0xFFB066,0,120);lamp.position.set(cx+W3.cw/2-13,20,cz+W3.cd/2-13);
         lamp.userData={f:0,i:i};g.add(lamp);T3.lamps.push(lamp);
