@@ -401,6 +401,7 @@ button .ic+*{vertical-align:inherit}
   <div class="bar">
     <button id="b-main" class="dsp">Walk the round</button>
     <button id="b-build" class="nb" data-a="build"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="9" height="5" fill="#2F6E63"/><rect x="3" y="12" width="13" height="5" fill="#85B3A6"/><rect x="12.6" y="6" width="8.4" height="5" fill="#1F5148"/></svg>Build</button>
+    <button id="b-plan" class="nb" data-a="plan"><svg viewBox="0 0 24 24"><path d="M12 3.6 20 8v8l-8 4.4L4 16V8z" fill="none" stroke="#2F6E63" stroke-width="2"/><path d="M12 8.4 16 10.6v4.2L12 17l-4-2.2v-4.2z" fill="#85B3A6"/></svg>Plan</button>
     <button id="b-roster" class="nb" data-a="roster"><svg viewBox="0 0 24 24"><circle cx="12" cy="7.4" r="3.6" fill="#2F6E63"/><path d="M4.6 20c0-4.2 3.3-7 7.4-7s7.4 2.8 7.4 7z" fill="#85B3A6"/></svg>Roster</button>
     <button id="b-chain" class="nb" data-a="chain"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="16" fill="#2F6E63"/><rect x="12" y="8" width="7" height="12" fill="#85B3A6"/><rect x="12" y="4" width="7" height="3" fill="#E2A03C"/></svg>Chain</button>
   </div>
@@ -415,7 +416,7 @@ button .ic+*{vertical-align:inherit}
           <li><b>Read the top of the screen.</b> It shows Act 1 of 12 and then the job for this beat, such as The door or The look, with a line saying what to do. Do that one job and the day moves on to the next of the twelve.</li>
           <li><b>Start with the big button.</b> Bottom left. It usually says Walk the round, and each tap reads every room. When it shows a name, such as Answer Osric, tap it to open that staff call and choose a reply.</li>
           <li><b>Rooms, the door and the 3D view.</b> Tap a room on the plan in the middle to open its card. Tap the Queue number at the top left to open the door, where you can take the next person off the door or leave the order to triage. The 3D button shows all three floors and you drag to turn it. The day is played on the plan.</li>
-          <li><b>The other three buttons.</b> Build puts rooms in the empty slots, Roster posts staff, and Chain holds the register and the settings. Sound stays off until you turn it on there.</li>
+          <li><b>The buttons along the bottom.</b> Build puts rooms in the empty slots, Plan buys the upgrades the ward keeps for good, Roster posts staff, and Chain holds the register and the settings. Sound stays off until you turn it on there.</li>
           <li><b>Finish the day.</b> At the sign-off the big button becomes Sign this visit off. Tap it for your grade, then Carry on to the next visit.</li>
         </ol>
         <div class="hw-nums">
@@ -446,6 +447,7 @@ button .ic+*{vertical-align:inherit}
     <div class="v3d-bar" id="v3d-bar">
       <button class="v3d-main" id="v3d-main" data-a="walk">Walk the round</button>
       <button data-a="build">Build</button>
+      <button data-a="plan">Plan</button>
       <button data-a="roster">Roster</button>
       <button data-a="chain">Chain</button>
       <button data-a="report">Report</button>
@@ -464,6 +466,7 @@ button .ic+*{vertical-align:inherit}
   <div class="sheet" id="sh-report" role="dialog" aria-label="Shift report"><div class="hd"></div><div class="bd"></div></div>
   <div class="sheet" id="sh-choice" role="dialog" aria-label="Choice"><div class="hd"></div><div class="bd"></div></div>
   <div class="sheet" id="sh-chain" role="dialog" aria-label="The chain"><div class="hd"></div><div class="bd"></div></div>
+  <div class="sheet" id="sh-plan" role="dialog" aria-label="The ward plan"><div class="hd"></div><div class="bd"></div></div>
 
   <div id="md-call" role="dialog" data-a="callLater" aria-label="The staff raise a problem"><div class="box" id="md-body"></div></div>
 
@@ -589,7 +592,7 @@ function freshWard(){
   st[1].at=-1; st[1].note="is on the ward door";
   st[2].at=3; st[2].note="is in the treatment room";
   return {cash:1650,day:1,visit:1,acts:0,clock:0,load:0,act:1,actWas:1,peak:0,standing:0,grade:0,graded:0,
-    register:[],unlocks:["bay-four"],rooms:rooms,staff:st,patients:[],treated:0,wrongKit:0,deferred:0,
+    register:[],unlocks:["bay-four"],tech:[],rooms:rooms,staff:st,patients:[],treated:0,wrongKit:0,deferred:0,
     slots:[0,0],
     seen:0,misplace:0,snag:0,handover:"",visitor:"",visited:0,report:[],log:[],away:0,awayShifts:0,
     pending:null,callOpen:0,choice:"",problems:[],lastSeen:Date.now(),sound:0,motion:1,haptics:0,
@@ -638,6 +641,7 @@ function queueList(){
   return o;
 }
 function distanceFromDoor(slot){return slot+2;}
+function treatActs(){return techOn("trolley")?2:3;}
 function journeyActs(slot){var d=distanceFromDoor(slot);return d>6?1+Math.floor((d-6)/3)*1:1;}
 /* ============================================================
    3. SAVE AND LOAD
@@ -646,7 +650,7 @@ function save(){
   try{
     var t={v:2,cash:S.cash,day:S.day,visit:S.visit,standing:S.standing,grade:S.grade,graded:S.graded,
       treated:S.treated,wrongKit:S.wrongKit,deferred:S.deferred,seen:S.seen,misplace:S.misplace,snag:S.snag,
-      register:S.register.slice(-40),unlocks:S.unlocks.slice(),rooms:S.rooms,staff:S.staff,patients:S.patients,
+      register:S.register.slice(-40),unlocks:S.unlocks.slice(),tech:(S.tech||[]).slice(),rooms:S.rooms,staff:S.staff,patients:S.patients,
       sound:S.sound,motion:S.motion,haptics:S.haptics,scale:S.scale,strip:S.strip,sort:S.sort,
       away:S.away,lastSeen:Date.now(),report:S.report.slice(0,6),log:(S.log||[]).slice(-60),
       pending:S.pending,handover:S.handover};
@@ -666,6 +670,7 @@ function load(){
     S.seen=t.seen||0;S.misplace=t.misplace||0;S.snag=t.snag||0;
     if(t.register)S.register=t.register;
     if(t.unlocks&&t.unlocks.length)S.unlocks=t.unlocks;
+    if(t.tech&&t.tech.length)S.tech=t.tech;
     if(t.rooms&&t.rooms.length===6)S.rooms=t.rooms;
     if(t.staff&&t.staff.length)S.staff=t.staff;
     if(t.patients)S.patients=t.patients;
@@ -977,6 +982,36 @@ function stateOf(i){
   return {w:"idle",label:"Empty",f:"#DACDB7",tc:"#3B2E20",
     icon:'<rect x="-5" y="-4" width="10" height="8" fill="none" stroke="#6B5A44" stroke-width="1.8"/>'};
 }
+/* ---- per-room load: a bar under the name plate and a dial on the patient ---- */
+function roomOccupancy(i){
+  var n=0,k,p;
+  for(k=0;k<S.patients.length;k++){
+    p=S.patients[k];
+    if(p.room===i&&(p.st==="bay"||p.st==="treat"||p.st==="day"||p.st==="lounge"))n++;
+  }
+  return n;
+}
+function roomMeter(i){
+  var r=S.rooms[i];
+  if(!r.t||r.blocked)return "";
+  var occ=roomOccupancy(i),busy=(r.t==="treat"&&r.busy),frac=0,col="#9AA7A0",cap="";
+  if(busy){var ta=treatActs();frac=(ta-Math.max(0,r.busyLeft))/ta;col="#2F6E63";cap=(ta-Math.max(0,r.busyLeft))+" of "+ta+" acts";}
+  else if(occ){frac=(r.t==="bay")?Math.min(1,occ/2):0;col="#E2A03C";cap=(r.t==="bay")?(occ+" of 2 beds"):(occ+" waiting in here");}
+  if(!busy&&!occ)return "";
+  var x=roomX(i),y=(i<3?57:317),w=CW-14,fw=Math.max(2,w*Math.min(1,frac));
+  var s=R(x+7,y,w,5,"#E6D6B8",2.5)+R(x+7,y,fw,5,col,2.5)+LIT(x+7,y,w,2,2);
+  s+=TX(x+7,y+12,cap,9.5,"#3B2E20",700);
+  return s;
+}
+function treatDial(i){
+  var r=S.rooms[i];
+  if(r.t!=="treat"||!r.busy)return "";
+  var x=roomX(i),b=baseY(i),cx=x+18,cy=b-24,rad=9.5,C=2*Math.PI*rad;
+  var frac=(treatActs()-Math.max(0,r.busyLeft))/treatActs();
+  return '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="none" stroke="#E9DCC2" stroke-width="3" opacity=".9"/>'+
+    '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="none" stroke="#2F6E63" stroke-width="3" stroke-linecap="round" '+
+    'stroke-dasharray="'+(C*frac).toFixed(2)+' '+C.toFixed(2)+'" transform="rotate(-90 '+cx+' '+cy+')"/>';
+}
 function needsStaff(i){
   var r=S.rooms[i],d=roomDef(r.t),k;
   if(!r.t||r.blocked)return 0;
@@ -1049,6 +1084,7 @@ function shell(){
   s+=corridorArt();
   for(i=0;i<6;i++){
     s+=furn(i);
+    s+=treatDial(i);
     /* the door of the room, in its corridor-side wall */
     var dx=roomX(i)+22,dw=74,dy=(i<3?NY+NH-5:SY-5);
     s+=R(dx,dy,dw,7,"#A08C68");
@@ -1062,6 +1098,7 @@ function shell(){
       s+=TX(roomX(i)+6,py+11.6,(dd?dd.n:"Room"),12,"#241A10",800);
       if(S.rooms[i].door)s+=TX(roomX(i)+CW-6,py+11.6,S.rooms[i].door,11,"#22574F",800,"end");
       s+='</g>';
+      s+=roomMeter(i);
     }
   }
   s+=queueArt();
@@ -1229,9 +1266,10 @@ function moveQueue(){
   wl("seen",{p:shortName(p),cond:p.cond,slot:b.slot});
 }
 function bayWait(slot){
-  var t=triageSlot();
-  if(t>=0&&Math.abs(slot-t)===1)return 1;
-  return journeyActs(slot)>1?3:2;
+  var t=triageSlot(),w;
+  if(t>=0&&Math.abs(slot-t)===1)w=1;else w=journeyActs(slot)>1?3:2;
+  if(techOn("bleeps")&&w>1)w-=1;
+  return w;
 }
 function bayStep(){
   var i,p,beds=bayBeds(),b;
@@ -1247,7 +1285,7 @@ function bayStep(){
   /* the day room takes the ones who can be moved on, and gives mood back */
   for(i=0;i<S.patients.length;i++){
     p=S.patients[i];
-    if(p.st==="bay"&&p.ready&&p.why==="seen"&&roomsOf("day").length&&rnd()<0.25){
+    if(p.st==="bay"&&p.ready&&p.why==="seen"&&roomsOf("day").length&&rnd()<(techOn("chairs")?0.45:0.25)){
       p.st="day";p.room=roomsOf("day")[0];p.wait=0;p.why="";
     }
   }
@@ -1268,7 +1306,7 @@ function treatStep(){
     if(best){
       var r=S.rooms[ts];
       best.st="treat";best.room=ts;best.bed=1;best.wait=0;best.pay0=best.pay;
-      r.busy=best.id;r.busyLeft=3;
+      r.busy=best.id;r.busyLeft=treatActs();
       S.note=shortName(best)+" is in the treatment room.";
     }
   }
@@ -1287,7 +1325,7 @@ function finishCase(p){
   var good=(p.card===p.card0),pay=p.pay0||p.pay,note;
   if(good&&p.cond==="Damp Hat"&&roomsOf("coat").length)pay=Math.round(pay*1.2);
   if(!good){
-    pay=Math.round(pay*0.5);
+    pay=Math.round(pay*(techOn("rails")?0.75:0.5));
     S.wrongKit++;
     note=shortName(p)+" was treated on the wrong card and the ward has written it up";
   }else{
@@ -1368,7 +1406,7 @@ function moodStep(){
   if(S.acts%9===0){
     for(i=0;i<S.staff.length;i++){
       st=S.staff[i];
-      if(st.at>=0&&S.load>70&&st.mood==="Steady"){moodDown(st);st.note="went flat with a full ward";}
+      if(st.at>=0&&S.load>70&&st.mood==="Steady"&&(!techOn("lamps")||rnd()<0.5)){moodDown(st);st.note="went flat with a full ward";}
     }
   }
 }
@@ -1814,7 +1852,7 @@ function personIcon(c,f){
 }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 /* ---------------- the sheets ---------------- */
-var SHEETS=["sh-room","sh-patient","sh-build","sh-staff","sh-report","sh-choice","sh-chain"];
+var SHEETS=["sh-room","sh-patient","sh-build","sh-staff","sh-report","sh-choice","sh-chain","sh-plan"];
 // guard: every sheet must keep its header and body, or the panel opens blank and its options vanish
 (function(){
   var i,s;
@@ -1850,6 +1888,7 @@ function renderSheet(){
   else if(S.sheet==="sh-report")h=S.resultHTML?resultHTML():reportHTML();
   else if(S.sheet==="sh-choice")h=S.with.kind==="visitor"?visitorHTML():handoverHTML();
   else if(S.sheet==="sh-chain")h=chainHTML();
+  else if(S.sheet==="sh-plan")h=techHTML();
   var hd=el(S.sheet).querySelector(".hd");
   if(hd)hd.outerHTML=h.head;
   var bd=el(S.sheet).querySelector(".bd");
@@ -1966,11 +2005,68 @@ function patientHTML(id){
     '<button data-a="toTreat" data-arg="'+p.id+'">Take them to the treatment room by hand</button></div>';
   return wrap(head,h,"Back to the ward");
 }
+/* ---- the ward plan: what the ward buys once, and keeps ---- */
+var TECH=[
+ {id:"trolley",tier:1,n:"A second trolley",cost:550,needs:[],standing:0,
+  does:"A trolley of kit in each treatment bay, so a case is finished in two acts instead of three.",
+  eff:"Treatment takes 2 acts, not 3"},
+ {id:"rails",tier:1,n:"Cards on a rail",cost:420,needs:[],standing:0,
+  does:"Every kit card hangs where it is used. A wrong card still costs the ward, but only a quarter of the fee.",
+  eff:"Wrong card keeps 75% of the fee, not 50%"},
+ {id:"bleeps",tier:2,n:"Bleep handsets",cost:780,needs:["trolley"],standing:55,
+  does:"The nurse is bleeped the moment a patient reaches a bay instead of finding out on the next walk. A bay is ready an act sooner.",
+  eff:"Bay wait: 2 acts becomes 1"},
+ {id:"chairs",tier:2,n:"Two more chairs",cost:640,needs:["rails"],standing:55,
+  does:"The day room takes a ready patient far more often, so the bays come free sooner.",
+  eff:"Day room fills 45% of the time, not 25%"},
+ {id:"lamps",tier:3,n:"Twilight lamps",cost:1150,needs:["chairs"],standing:70,
+  does:"Softer light at the end of the day. A full ward stops flattening the staff half as often.",
+  eff:"Load mood drops halved"},
+ {id:"locum",tier:3,n:"A locum book",cost:1400,needs:["bleeps"],standing:70,
+  does:"Names to ring on a bad morning. Taking somebody on costs a quarter less than it did.",
+  eff:"Hiring 25% cheaper"}
+];
+function techOn(id){return (S.tech||[]).indexOf(id)>=0;}
+function techDef(id){for(var i=0;i<TECH.length;i++)if(TECH[i].id===id)return TECH[i];return null;}
+function techTierAt(t){return t===1?0:(t===2?55:70);}
+function techOpen(d){if(techOn(d.id))return 0;if(S.standing<techTierAt(d.tier))return 0;
+  for(var i=0;i<d.needs.length;i++)if(!techOn(d.needs[i]))return 0;return 1;}
+function techBuy(id){
+  var d=techDef(id);
+  if(!d||!techOpen(d)||S.cash<d.cost)return 0;
+  S.cash-=d.cost;if(!S.tech)S.tech=[];S.tech.push(id);
+  S.note="The plan: "+d.n.toLowerCase()+", bought and in place.";
+  wl("tech",{id:id,cost:d.cost});
+  save();
+  return 1;
+}
+function techHTML(){
+  var h="",t,i,d,head=headHTML("The ward plan",S.tech.length+" of "+TECH.length+" bought");
+  h+='<div class="card"><h3>What the plan is for</h3><p>Rooms are the ward you are given. The plan is the ward you build out of it: things bought once, kept for good, and paid for out of the drawer. Each tier opens as the standing grade rises.</p></div>';
+  for(t=1;t<=3;t++){
+    var gate=techTierAt(t),locked=S.standing<gate;
+    h+='<div class="card"><div class="r1"><b>Tier '+t+'</b><span class="pill'+(locked?"":" on")+'">'+
+      (locked?("standing "+gate+" to open"):"open")+'</span></div></div>';
+    for(i=0;i<TECH.length;i++){
+      d=TECH[i];if(d.tier!==t)continue;
+      var has=techOn(d.id),ok=techOpen(d);
+      var why=has?"":(!ok?("needs "+(d.needs.length?("the "+techDef(d.needs[0]).n.toLowerCase()+", and "):"")+"a standing of "+gate):(S.cash<d.cost?"gathers "+money(d.cost-S.cash)+" more":"ready"));
+      h+='<div class="card'+(ok&&S.cash>=d.cost?" want":"")+'"><div class="r1"><b>'+esc(d.n)+'</b><span>'+money(d.cost)+'</span></div>'+
+        '<p>'+esc(d.does)+'</p><p class="hint">'+esc(d.eff)+'</p>';
+      if(has)h+='<span class="pill on">In place</span>';
+      else if(ok&&S.cash>=d.cost)h+='<button class="gilt" data-a="tech" data-arg="'+d.id+'">Buy '+esc(d.n)+' · '+money(d.cost)+'</button>';
+      else h+='<p class="hint">'+esc(why)+'</p>';
+      h+='</div>';
+    }
+  }
+  return wrap(head,h,"Back to the ward");
+}
 function buildHTML(){
   var h="",i,slots=[],head=headHTML("The build sheet",money(S.cash)+" to spend");
   for(i=0;i<6;i++)if(!S.rooms[i].t)slots.push(i);
   h+='<div class="card"><h3>'+(slots.length?"Open slots: "+slots.map(function(n){return n+1;}).join(", "):"The ward is full")+'</h3>'+
     '<p>Rooms go in an open slot. A room far from the door means patients walk farther, which costs time.</p>'+
+    '<button class="alt" data-a="plan">Open the ward plan</button>'+
     (S.standing>=62?'<p>The standing grade has brought one more room onto the sheet: the coat room.</p>':'')+'</div>';
   for(i=0;i<ROMS.length;i++){
     var d=ROMS[i];
@@ -1995,9 +2091,9 @@ function buildHTML(){
 function staffHTML(){
   var h="",i,st,head=headHTML("The roster",S.staff.length+" on the books");
   h+='<div class="card"><h3>Take somebody on</h3>'+
-    '<button data-a="hire" data-arg="porter">Take on a porter for '+money(480)+'</button>'+
-    '<button data-a="hire" data-arg="nurse">Take on a nurse for '+money(700)+'</button>'+
-    '<button data-a="hire" data-arg="doctor">Take on a doctor for '+money(980)+'</button></div>';
+    '<button data-a="hire" data-arg="porter">Take on a porter for '+money(hireCost("porter"))+'</button>'+
+    '<button data-a="hire" data-arg="nurse">Take on a nurse for '+money(hireCost("nurse"))+'</button>'+
+    '<button data-a="hire" data-arg="doctor">Take on a doctor for '+money(hireCost("doctor"))+'</button></div>';
   h+='<div class="sorts">'+
    '<button data-a="sort" data-arg="role" class="'+(S.sort==="role"?"on":"")+'">By role</button>'+
    '<button data-a="sort" data-arg="mood" class="'+(S.sort==="mood"?"on":"")+'">By mood</button>'+
@@ -2373,6 +2469,8 @@ function act(name,arg,arg2){
     case "queue":openSheet("sh-room",{slot:-1});break;
     case "patient":openSheet("sh-patient",{id:parseInt(arg,10)});break;
     case "build":openSheet("sh-build");break;
+    case "plan":openSheet("sh-plan");break;
+    case "tech":techBuy(arg);render();break;
     case "roster":openSheet("sh-staff");break;
     case "chain":openSheet("sh-chain");break;
     case "report":S.resultHTML=0;openSheet("sh-report");break;
@@ -2497,8 +2595,10 @@ function rename(id){
   S.note=old+" is called "+st.first+" "+st.last+" now.";
   return 1;
 }
+function hireCost(role){var c=role==="doctor"?980:(role==="nurse"?700:480);
+  return techOn("locum")?Math.round(c*0.75):c;}
 function hire(role){
-  var cost=role==="doctor"?980:(role==="nurse"?700:480);
+  var cost=hireCost(role);
   if(S.cash<cost)return 0;
   S.cash-=cost;
   S.staff.push(newStaff(role));
